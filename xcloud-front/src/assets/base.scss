@@ -1,0 +1,66 @@
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(239,239,239);
+  border-right: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-right: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background: #bfbfbf;
+}
+
+::-webkit-scrollbar-corner {
+  background: #bfbfbf;
+}
+
+:root {
+  --link: #007fff;
+  --pink: #FF6699;
+  --text2: #6166d;
+  --icon: #9499a0;
+}
+
+body {
+  padding: 0px;
+  margin: 0px;
+  font-size: 14px;
+  color: #636d7e;
+}
+
+*{
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  vertical-align: middle;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif
+}
+
+.a-link{
+  text-decoration: none;
+  color: var(--link);
+  cursor: pointer;
+}
+
+.el-form-item{
+  align-content: center;
+}
+
+.container-body {
+  margin: 0px auto;
+  padding-top: 5px;
+}
+
+.el-button {
+  .iconfont ::before{
+    margin-right: 5px;
+  }
+}
