@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.List;
 
 import com.njtech.xcloud.config.RedisUtils;
+import com.njtech.xcloud.entity.constants.Constants;
 import com.njtech.xcloud.entity.enums.ResponseCodeEnum;
 import com.njtech.xcloud.entity.query.UserInfoQuery;
 import com.njtech.xcloud.entity.po.UserInfo;
 import com.njtech.xcloud.entity.vo.ResponseVO;
+import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 import com.njtech.xcloud.exception.BusinessException;
 import com.njtech.xcloud.mappers.UserInfoMapper;
 import com.njtech.xcloud.service.EmailCodeService;
@@ -15,6 +17,7 @@ import com.njtech.xcloud.service.UserInfoService;
 import com.njtech.xcloud.utils.CaptchaUtil;
 import com.njtech.xcloud.utils.StringTools;
 import org.apache.catalina.User;
+import org.apache.http.HttpRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -34,7 +37,7 @@ import java.awt.image.BufferedImage;
  *  Controller
  */
 @RestController("UserInfoController")
-public class UserInfoController{
+public class UserInfoController extends ABaseController{
 
 	@Resource
 	private UserInfoService userInfoService;
@@ -149,5 +152,44 @@ public class UserInfoController{
 		return userInfoService.sendEmailCode(email,checkCode,request,type);
 	}
 
+	@RequestMapping("/register")
+	public ResponseVO register(HttpSession session, String email, String nickName, String password, String checkCode, String emailCode) {
+		try {
+			if (!checkCode.equalsIgnoreCase((String) session.getAttribute("checkCode"))){
+				throw new BusinessException("图片验证码错误");
+			}
+			userInfoService.register(email,nickName,password,checkCode,emailCode);
+			return getSuccessResponseVO(null);
+		} finally {
+			session.removeAttribute("checkCode");
+		}
+	}
 
+
+	@RequestMapping("/login")
+	public ResponseVO login(HttpSession session, String email, String password, String checkCode) {
+		try {
+			if (!checkCode.equalsIgnoreCase((String) session.getAttribute("checkCode"))){
+				throw new BusinessException("图片验证码错误");
+			}
+			SessionWebUserVO sessionWebUserVO = userInfoService.login(email, password);
+			session.setAttribute(Constants.SESSION_WEB_USER, sessionWebUserVO);
+			return getSuccessResponseVO(sessionWebUserVO);
+		} finally {
+			session.removeAttribute("checkCode");
+		}
+	}
+
+	@RequestMapping("/resetPwd")
+	public ResponseVO retPassword(HttpSession session, String email, String password, String checkCode) {
+		try {
+			if (!checkCode.equalsIgnoreCase((String) session.getAttribute("checkCode"))){
+				throw new BusinessException("图片验证码错误");
+			}
+			userInfoService.retPassword(email,password);
+			return getSuccessResponseVO(null);
+		} finally {
+			session.removeAttribute("checkCode");
+		}
+	}
 }

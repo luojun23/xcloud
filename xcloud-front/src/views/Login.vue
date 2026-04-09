@@ -321,7 +321,7 @@
                 clearable
               >
                 <template #prefix>
-                  <el-icon><Key /></el-icon>
+                <span class="iconfont icon-checkcode"></span>
                 </template>
               </el-input>
               <img :src="checkCodeUrl" class="check-code-img" @click="changeCheckCode(0)"/>
@@ -346,7 +346,7 @@
       :show="dialogConfig4SendMailCode.show"
       :title="dialogConfig4SendMailCode.title"
       :buttons="dialogConfig4SendMailCode.buttons"
-      width="400px"
+      width="450px"
       :showCancel="false"
       @close="dialogConfig4SendMailCode.show=false"
     >

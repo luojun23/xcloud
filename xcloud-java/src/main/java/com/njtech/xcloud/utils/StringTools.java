@@ -1,5 +1,7 @@
 package com.njtech.xcloud.utils;
 import com.njtech.xcloud.exception.BusinessException;
+import org.apache.commons.lang3.RandomStringUtils;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -49,5 +51,20 @@ public class StringTools {
             return true;
         }
         return false;
+    }
+
+    /**
+    * @Description : 生成随机数
+    * @Param :  * @param count
+    * @Author : luojun
+    * @Date : 2026/4/8 19:27
+    * @return java.lang.String
+    */
+    public static String getRandomNumber(Integer count) {
+        return RandomStringUtils.random(count,false,true);
+    }
+
+    public static String Md5(String str){
+        return org.springframework.util.DigestUtils.md5DigestAsHex(str.getBytes());
     }
 }

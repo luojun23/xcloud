@@ -15,6 +15,12 @@ public class Appconfig {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${admin.emails}")
+    private String adminEmails;
+
+    public String getAdminEmails() {
+        return adminEmails;
+    }
 
     public String getFromEmail() {
         return fromEmail;
