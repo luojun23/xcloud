@@ -9,19 +9,6 @@
     <facet type="Spring" name="Spring">
       <configuration />
     </facet>
-    <facet type="JRebel" name="JRebel">
-      <configuration>
-        <option name="ideModuleStorage">
-          <map>
-            <entry key="com.zeroturnaround.jrebel.FormatVersion" value="7.0.0" />
-            <entry key="jrebelEnabled" value="true" />
-            <entry key="lastExternalPluginCheckTime" value="1775723706256" />
-            <entry key="rebelXmlGenerationInvariantToken" value="PGFwcGxpY2F0aW9uIGdlbmVyYXRlZC1ieT0iaW50ZWxsaWoiPjxpZD54Y2xvdWQtamF2YTwvaWQ+PGNsYXNzcGF0aD48ZGlyIG5hbWU9IkM6L1VzZXJzL0x1b2p1bi9EZXNrdG9wL3dvcmtzcGFjZS94Y2xvdWQveGNsb3VkLWphdmEvdGFyZ2V0L2NsYXNzZXMiPjwvZGlyPjwvY2xhc3NwYXRoPjwvYXBwbGljYXRpb24+" />
-          </map>
-        </option>
-        <option name="version" value="19" />
-      </configuration>
-    </facet>
   </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/target/classes" />
