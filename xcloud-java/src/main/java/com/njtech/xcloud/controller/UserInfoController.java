@@ -1,32 +1,22 @@
 package com.njtech.xcloud.controller;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
 
 import com.njtech.xcloud.config.RedisUtils;
 import com.njtech.xcloud.entity.constants.Constants;
-import com.njtech.xcloud.entity.enums.ResponseCodeEnum;
 import com.njtech.xcloud.entity.query.UserInfoQuery;
-import com.njtech.xcloud.entity.po.UserInfo;
 import com.njtech.xcloud.entity.vo.ResponseVO;
 import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 import com.njtech.xcloud.exception.BusinessException;
 import com.njtech.xcloud.mappers.UserInfoMapper;
-import com.njtech.xcloud.service.EmailCodeService;
+import com.njtech.xcloud.service.FileInfoService;
 import com.njtech.xcloud.service.UserInfoService;
-import com.njtech.xcloud.service.impl.MinioServiceImpl;
 import com.njtech.xcloud.utils.CaptchaUtil;
 import com.njtech.xcloud.utils.StringTools;
-import org.apache.catalina.User;
-import org.apache.http.HttpRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -35,7 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
-import java.util.Map;
 
 /**
  * Controller
@@ -53,7 +42,7 @@ public class UserInfoController extends ABaseController {
     private RedisUtils redisUtils;
 
     @Resource
-    private MinioServiceImpl minioService;
+    private FileInfoService fileInfoService;
 
     @Resource
     private UserInfoMapper userInfoMapper;
@@ -193,51 +182,39 @@ public class UserInfoController extends ABaseController {
      * 获取图片并以图片流形式输出
      *
      * @param userId   用户ID（此处作为文件名使用）
-     * @param response HTTP响应
      */
     @GetMapping("/getAvatar/{userId}")
-    public void getImage(
+    public void getAvatar(
             @PathVariable("userId") String userId,
             HttpServletResponse response) {
-        InputStream inputStream = null;
-        ServletOutputStream outputStream = null;
-        try {
-            String fileName = userId + ".jpg";
-            // 尝试从MinIO获取文件流
-            try {
-                inputStream = minioService.getFileStream(fileName);
-            } catch (Exception e) {
-                // 获取失败，使用默认图像
-                inputStream = minioService.getFileStream("default_img.jpg");
-            }
+        fileInfoService.getFile(userId, response);
+    }
 
-            // 设置响应头
-            response.setContentType("image/jpeg");
-            response.setHeader("Cache-Control", "max-age=86400"); // 缓存1天
+    @RequestMapping("/logout")
+    public ResponseVO logout(HttpSession session) {
+        session.invalidate();
+        return getSuccessResponseVO(null);
+    }
 
-            // 将文件流写入响应输出流
-            outputStream = response.getOutputStream();
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-            outputStream.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new BusinessException("获取图片失败: " + e.getMessage());
-        } finally {
-            // 关闭流            
-			try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-                if (outputStream != null) {
-                    outputStream.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    @PostMapping("/updateUserAvatar")
+    public ResponseVO updateUserAvatar(MultipartFile avatar,HttpSession session) {
+        SessionWebUserVO sessionWebUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+        String userId = sessionWebUserVO.getUserId();
+        fileInfoService.updateUserAvatar(userId,avatar);
+        return getSuccessResponseVO(null);
+    }
+
+    @GetMapping("/updatePassword")
+    public void updatePassword(
+            @PathVariable("userId") String userId,
+            HttpServletResponse response) {
+        fileInfoService.getFile(userId, response);
+    }
+
+    @GetMapping("/getUseSpace")
+    public void getUseSpace(
+            @PathVariable("userId") String userId,
+            HttpServletResponse response) {
+        fileInfoService.getFile(userId, response);
     }
 }

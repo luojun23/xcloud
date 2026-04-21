@@ -113,6 +113,8 @@ const submitForm = async ()=>{
     }
     dialogConfig.value.show = false;
     proxy.Message.success("密码修改成功")
+    proxy.Cookies.remove("userInfo")
+    proxy.Router.push("/")
 });
 }
 </script>

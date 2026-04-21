@@ -68,6 +68,7 @@
                 placeholder="请输入验证码"
                 size="large"
                 clearable
+                @keyup.enter="doSubmit"
               >
               <template #prefix>
                 <span class="iconfont icon-checkcode"></span>

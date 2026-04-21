@@ -91,12 +91,12 @@ const router = createRouter({
   ]
 })
 
-// router.beforeEach((to, from, next)=>{
-//   const userInfo = cookies.get("userInfo")
-//   if (to.meta.needLogin!=null&&to.meta.needLogin&&userInfo==null){
-//     router.push("/")
-//   }
-//   next();
-// })
+router.beforeEach((to, from, next)=>{
+  const userInfo = cookies.get("userInfo")
+  if (to.meta.needLogin!=null&&to.meta.needLogin&&userInfo==null){
+    router.push("/")
+  }
+  next();
+})
 
 export default router

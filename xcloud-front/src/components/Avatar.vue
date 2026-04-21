@@ -1,11 +1,7 @@
 <template>
 <span class="avatar" :style="{width: width + 'px',heigth: width + 'px'}">
   <img
-    :src="
-      avatar && avatar != ''
-      ? avatar
-      : `${proxy.globalInfo.avatarUrl}${userId}?${timestamp}`
-      "
+    :src="getAvatarUrl()"
   >
 </span>
 </template>
@@ -30,6 +26,15 @@ const props = defineProps({
     default:40,
   },
 });
+
+const getAvatarUrl = () => {
+  // 如果 avatar 存在且不是 null/undefined/空字符串，则使用 avatar
+  if (props.avatar && props.avatar !== 'null' && props.avatar !== '') {
+    return props.avatar;
+  }
+  // 否则使用 getAvatar 接口
+  return `${proxy.globalInfo.avatarUrl}${props.userId}?${props.timestamp}`;
+};
 </script>
 
 <style scoped>

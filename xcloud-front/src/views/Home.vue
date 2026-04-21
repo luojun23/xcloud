@@ -27,7 +27,7 @@
           <div class="avatar">
             <Avatar :user-id="userInfo.userId" :width="40" :avatar="userInfo.avatar" :timestamp="timestamp"></Avatar>
           </div>
-          <span class="nick_name">{{ userInfo.nickname }}</span>
+          <span class="nick_name">{{ userInfo.nickName }}</span>
         </div>
         <template #dropdown>
           <el-dropdown-menu>
@@ -208,7 +208,7 @@ const menus = [
 const currentMenu = ref({})
 const currentPath = ref()
 
-const timestamp = ref(0)
+const timestamp = ref(new Date().getTime())
 const userInfo = ref(
     proxy.Cookies.get("userInfo")
 );

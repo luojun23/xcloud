@@ -10,7 +10,7 @@
             v-if="modelValue && modelValue.qqAvatar"
             style="width: 150px ;height: 150px"
         />
-        <img :src="'/api/getAvatar/${modelValue.userId}'" style="width: 150px ;height: 150px" v-else/>
+        <img :src="`/api/getAvatar/${modelValue.userId}?${timestamp}`" style="width: 150px ;height: 150px" v-else/>
       </template>
     </div>
     <div class="select-btn">
@@ -35,18 +35,19 @@ const { proxy } = getCurrentInstance();
 const router = useRouter();
 const route = useRoute();
 
-const timestamp = ref("")
+const timestamp = ref(new Date().getTime())
+
 
 const props = defineProps({
-  modelValues:{
+  modelValue:{
     type:Object,
-    default:null
+    default:()=>({})
   }
 });
 
 const localFile = ref(null);
-const emit = defineEmits();
 
+const emit = defineEmits();
 const uploadImage = async (file) =>{
   file = file.file;
   let img = new FileReader();

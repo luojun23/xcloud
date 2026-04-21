@@ -33,7 +33,7 @@
         <aspectjweaver.version>1.9.4</aspectjweaver.version>
         <fastjson.version>1.2.66</fastjson.version>
         <commons.lang3.version>3.4</commons.lang3.version>
-        <commons.codec.version>1.9</commons.codec.version>
+        <commons.codec.version>1.15</commons.codec.version>
         <commons.io.version>2.5</commons.io.version>
     </properties>
 
@@ -59,6 +59,7 @@
             <artifactId>spring-boot-starter-mail</artifactId>
             <version>${springboot.version}</version>
         </dependency>
+
         <!--redis -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -94,36 +95,13 @@
             <version>${logback.version}</version>
         </dependency>
 
-        <!--minio-->
+        <!-- 腾讯云 COS SDK -->
         <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>8.3.9</version>
+            <groupId>com.qcloud</groupId>
+            <artifactId>cos_api</artifactId>
+            <version>5.6.137</version>
         </dependency>
 
-        <!-- 强制覆盖 okhttp 版本，解决minio 与 springboot 冲突 -->
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>4.10.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okio</groupId>
-            <artifactId>okio</artifactId>
-            <version>3.2.0</version>
-        </dependency>
-
-        <!--slf4j-->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.25</version>
-        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

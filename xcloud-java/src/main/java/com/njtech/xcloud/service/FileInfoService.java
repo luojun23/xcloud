@@ -1,10 +1,14 @@
-package com.njtech.xcloud.service;
+	package com.njtech.xcloud.service;
 
 import java.util.List;
 
 import com.njtech.xcloud.entity.query.FileInfoQuery;
 import com.njtech.xcloud.entity.po.FileInfo;
 import com.njtech.xcloud.entity.vo.PaginationResultVO;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -68,5 +72,19 @@ public interface FileInfoService {
 	 * 根据FileIdAndUserId删除
 	 */
 	Integer deleteFileInfoByFileIdAndUserId(String fileId,String userId);
+
+	/**
+	 * 获取文件流并输出到响应
+	 * @param userId 文件名
+	 * @param response HTTP响应
+	 */
+	void getFile(String userId, HttpServletResponse response);
+
+	/**
+	 * 更新用户头像
+	 * @param userId 用户ID
+	 * @param avatar 头像文件
+	 */
+	void updateUserAvatar(String userId, MultipartFile avatar);
 
 }

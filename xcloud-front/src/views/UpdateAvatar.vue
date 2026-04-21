@@ -4,7 +4,6 @@
       :title="dialogConfig.title"
       :buttons="dialogConfig.buttons"
       width="500px"
-      :showCancel="false"
       @close="dialogConfig.show=false"
   >
     <el-form
@@ -15,7 +14,7 @@
     >
       <!--input输入 -->
       <el-form-item label="昵称">
-        {{formData.nickname}}
+        <span class="nick_name">{{formData.nickName}}</span>
       </el-form-item>
       <el-form-item label="头像">
         <AvatarUpload v-model="formData.avatar"></AvatarUpload>
@@ -49,7 +48,8 @@ const api = {
 
 const show =(data)=>{
   formData.value = Object.assign({},data)
-  formData.avatar = {userId:data.userId,qqAvatar:data.avatar};
+  formData.value.avatar = {userId:data.userId,qqAvatar:data.avatar};
+  
   dialogConfig.value.show = true;
 }
 defineExpose({show})
@@ -82,13 +82,17 @@ const submitForm=async()=>{
       return;
     }
     dialogConfig.value.show = false
+    // 更新 Cookie 中的 userInfo，清空 avatar 确保使用 getAvatar 接口刷新头像
     const CookieUserInfo = proxy.Cookies.get("userInfo")
-    delete CookieUserInfo.avatar;
+    CookieUserInfo.avatar = null;
     proxy.Cookies.set("userInfo",CookieUserInfo,0)
     emit("updateAvatar")
 }
 </script>
 
 <style scoped>
-
+.nick_name{
+  font-size: 12x;
+  color: #007fff;
+}
 </style>
