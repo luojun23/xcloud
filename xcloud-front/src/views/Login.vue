@@ -419,6 +419,7 @@ const rules = {
   ],
   nickName: [
     {required:true,message:"请输入昵称"},
+    {validator:proxy.Verify.nickName,message: "昵称长度最多14位"}
   ],
   ConfirmPassword: [
     {required:true,message:"请再次输入密码"},

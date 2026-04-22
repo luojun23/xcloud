@@ -1,5 +1,7 @@
 package com.njtech.xcloud.utils;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -37,5 +39,11 @@ public class IpUtil {
         }
 
         return ip;
+    }
+
+    public static void main(String[] args) {
+        String emails = "2370881903@qq.com";
+        boolean contains = ArrayUtils.contains(emails.split(","), "2370881903@qq.com");
+        System.out.println(contains);
     }
 }

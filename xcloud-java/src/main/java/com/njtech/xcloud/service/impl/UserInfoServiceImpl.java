@@ -17,19 +17,11 @@ import com.njtech.xcloud.mappers.UserInfoMapper;
 import com.njtech.xcloud.service.UserInfoService;
 import com.njtech.xcloud.utils.StringTools;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.tomcat.util.bcel.Const;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -298,11 +290,8 @@ public class UserInfoServiceImpl implements UserInfoService {
         SessionWebUserVO sessionWebUserVO = new SessionWebUserVO();
         sessionWebUserVO.setUserId(userInfo.getUserId());
         sessionWebUserVO.setNickName(userInfo.getNickName());
-        if (ArrayUtils.contains(appconfig.getAdminEmails().split(","), email)){
-            sessionWebUserVO.setAdmin(true);
-        }else{
-            sessionWebUserVO.setAdmin(false);
-        }
+        boolean b = ArrayUtils.contains(appconfig.getAdminEmails().split(","), email);
+        sessionWebUserVO.setAdmin(b);
         //redis存储userSpaceDto
         return sessionWebUserVO;
     }

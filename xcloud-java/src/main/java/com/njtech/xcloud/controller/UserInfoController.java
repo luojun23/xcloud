@@ -2,8 +2,11 @@ package com.njtech.xcloud.controller;
 
 import java.io.IOException;
 
+import com.njtech.xcloud.annotation.GlobalInterceptor;
+import com.njtech.xcloud.annotation.VerifyParam;
 import com.njtech.xcloud.config.RedisUtils;
 import com.njtech.xcloud.entity.constants.Constants;
+import com.njtech.xcloud.entity.enums.VerifyRegexEnum;
 import com.njtech.xcloud.entity.query.UserInfoQuery;
 import com.njtech.xcloud.entity.vo.ResponseVO;
 import com.njtech.xcloud.entity.vo.SessionWebUserVO;
@@ -55,6 +58,7 @@ public class UserInfoController extends ABaseController {
      * @param response HTTP响应
      */
     @GetMapping("/checkCode")
+    @GlobalInterceptor(checkLogin = false)
     public void getCheckCode(
             @RequestParam(value = "type", defaultValue = "0") Integer type,
             HttpServletRequest request,
@@ -96,6 +100,7 @@ public class UserInfoController extends ABaseController {
      * @return 响应结果
      */
     @RequestMapping("/sendEmailCode")
+    @GlobalInterceptor(checkLogin = false)
     public ResponseVO<String> sendEmailCode(
             @RequestParam(value = "email") String email,
             @RequestParam(value = "checkCode") String checkCode,
@@ -138,7 +143,13 @@ public class UserInfoController extends ABaseController {
     }
 
     @RequestMapping("/register")
-    public ResponseVO register(HttpSession session, String email, String nickName, String password, String checkCode, String emailCode) {
+    @GlobalInterceptor(checkParams = true,checkLogin = false)
+    public ResponseVO register(HttpSession session,
+                               @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email,
+                               @VerifyParam(required = true,max = 14) String nickName,
+                               @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD,min = 8,max = 18) String password,
+                               @VerifyParam(required = true) String checkCode,
+                               @VerifyParam(required = true) String emailCode) {
         try {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute("checkCode"))) {
                 throw new BusinessException("图片验证码错误");
@@ -152,7 +163,11 @@ public class UserInfoController extends ABaseController {
 
 
     @RequestMapping("/login")
-    public ResponseVO login(HttpSession session, String email, String password, String checkCode) {
+    @GlobalInterceptor(checkLogin = false)
+    public ResponseVO login(HttpSession session,
+                            @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL) String email,
+                            @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD) String password,
+                            String checkCode) {
         try {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute("checkCode"))) {
                 throw new BusinessException("图片验证码错误");
@@ -166,6 +181,7 @@ public class UserInfoController extends ABaseController {
     }
 
     @RequestMapping("/resetPwd")
+    @GlobalInterceptor
     public ResponseVO retPassword(HttpSession session, String email, String password, String checkCode) {
         try {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute("checkCode"))) {
@@ -181,7 +197,7 @@ public class UserInfoController extends ABaseController {
     /**
      * 获取图片并以图片流形式输出
      *
-     * @param userId   用户ID（此处作为文件名使用）
+     * @param userId 用户ID（此处作为文件名使用）
      */
     @GetMapping("/getAvatar/{userId}")
     public void getAvatar(
@@ -191,20 +207,23 @@ public class UserInfoController extends ABaseController {
     }
 
     @RequestMapping("/logout")
+    @GlobalInterceptor
     public ResponseVO logout(HttpSession session) {
         session.invalidate();
         return getSuccessResponseVO(null);
     }
 
     @PostMapping("/updateUserAvatar")
-    public ResponseVO updateUserAvatar(MultipartFile avatar,HttpSession session) {
+    @GlobalInterceptor
+    public ResponseVO updateUserAvatar(MultipartFile avatar, HttpSession session) {
         SessionWebUserVO sessionWebUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
         String userId = sessionWebUserVO.getUserId();
-        fileInfoService.updateUserAvatar(userId,avatar);
+        fileInfoService.updateUserAvatar(userId, avatar);
         return getSuccessResponseVO(null);
     }
 
     @GetMapping("/updatePassword")
+    @GlobalInterceptor
     public void updatePassword(
             @PathVariable("userId") String userId,
             HttpServletResponse response) {
@@ -212,6 +231,7 @@ public class UserInfoController extends ABaseController {
     }
 
     @GetMapping("/getUseSpace")
+    @GlobalInterceptor
     public void getUseSpace(
             @PathVariable("userId") String userId,
             HttpServletResponse response) {
