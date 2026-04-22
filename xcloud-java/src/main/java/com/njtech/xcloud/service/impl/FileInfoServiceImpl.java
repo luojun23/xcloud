@@ -6,6 +6,7 @@ import com.njtech.xcloud.entity.po.FileInfo;
 import com.njtech.xcloud.entity.query.FileInfoQuery;
 import com.njtech.xcloud.entity.query.SimplePage;
 import com.njtech.xcloud.entity.vo.PaginationResultVO;
+import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 import com.njtech.xcloud.exception.BusinessException;
 import com.njtech.xcloud.mappers.FileInfoMapper;
 import com.njtech.xcloud.service.FileInfoService;
@@ -267,5 +268,10 @@ public class FileInfoServiceImpl implements FileInfoService {
 				cosClient.shutdown();
 			}
 		}
+	}
+
+	@Override
+	public void uploadFile(SessionWebUserVO webUserVO, String fileId, MultipartFile file, String fileName, String fileMd5, String filePid, Integer chunkIndex, Integer chunks) {
+
 	}
 }

@@ -2,6 +2,7 @@ package com.njtech.xcloud.service.impl;
 
 import com.njtech.xcloud.config.Appconfig;
 import com.njtech.xcloud.config.RedisUtils;
+import com.njtech.xcloud.dto.UserSpaceDto;
 import com.njtech.xcloud.entity.constants.Constants;
 import com.njtech.xcloud.entity.enums.PageSize;
 import com.njtech.xcloud.entity.enums.ResponseCodeEnum;
@@ -292,7 +293,11 @@ public class UserInfoServiceImpl implements UserInfoService {
         sessionWebUserVO.setNickName(userInfo.getNickName());
         boolean b = ArrayUtils.contains(appconfig.getAdminEmails().split(","), email);
         sessionWebUserVO.setAdmin(b);
-        //redis存储userSpaceDto
+        //TODO 查询用户空间使用情况并存储到Redis
+        UserSpaceDto userSpaceDto = new UserSpaceDto();
+        userSpaceDto.setUseSpace(0L);
+        userSpaceDto.setTotalSpace((long) userInfo.getTotalSpace());
+        redisUtils.set(Constants.REDIS_KEY_USER_SPACE_USE + userInfo.getUserId(), userSpaceDto, Constants.REDIS_KEY_EXPIRES_DAY);
         return sessionWebUserVO;
     }
 

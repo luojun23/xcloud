@@ -42,6 +42,8 @@ instance.interceptors.response.use(
         if (showLoading && loading) {
             loading.close()
         }
+        //console.log(response)
+        //统一处理响应数据
         const responseData = response.data;
         if (responseType == "arraybuffer" || responseType == "blob") {
             return responseData;

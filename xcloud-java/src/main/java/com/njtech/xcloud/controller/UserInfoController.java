@@ -4,7 +4,9 @@ import java.io.IOException;
 
 import com.njtech.xcloud.annotation.GlobalInterceptor;
 import com.njtech.xcloud.annotation.VerifyParam;
+import com.njtech.xcloud.config.RedisComponent;
 import com.njtech.xcloud.config.RedisUtils;
+import com.njtech.xcloud.dto.UserSpaceDto;
 import com.njtech.xcloud.entity.constants.Constants;
 import com.njtech.xcloud.entity.enums.VerifyRegexEnum;
 import com.njtech.xcloud.entity.query.UserInfoQuery;
@@ -49,6 +51,9 @@ public class UserInfoController extends ABaseController {
 
     @Resource
     private UserInfoMapper userInfoMapper;
+
+    @Resource
+    private RedisComponent redisComponent;
 
     /**
      * 获取验证码图片流
@@ -230,11 +235,11 @@ public class UserInfoController extends ABaseController {
         fileInfoService.getFile(userId, response);
     }
 
-    @GetMapping("/getUseSpace")
+    @RequestMapping("/getUseSpace")
     @GlobalInterceptor
-    public void getUseSpace(
-            @PathVariable("userId") String userId,
-            HttpServletResponse response) {
-        fileInfoService.getFile(userId, response);
+    public ResponseVO getUseSpace(HttpSession session) {
+        SessionWebUserVO sessionWebUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+        UserSpaceDto userSpaceUse = redisComponent.getUserSpaceUse(sessionWebUserVO.getUserId());
+        return getSuccessResponseVO(userSpaceUse);
     }
 }

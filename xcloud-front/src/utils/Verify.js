@@ -2,7 +2,8 @@ const regs = {
     email: /^[1-9][0-9]{6,}@qq\.com$|^[A-Za-z0-9._%+-]+@gmail\.com$|^[A-Za-z0-9._%+-]+@163\.com$/,
     number:/^(0|[1-9][0-9]*)$/,
     password: /^(?=.*[A-Za-z])(?=.*\d).{8,}$/,
-    shareCode:/^[A-Za-z0-9]+$/
+    shareCode:/^[A-Za-z0-9]+$/,
+    nickName:/^[\u4e00-\u9fa5a-zA-Z0-9_]{1,14}$/,
 }
 
 const verify = (rule,value,reg,callback)=>{
@@ -29,6 +30,9 @@ export default {
     },
     shareCode: (rule,value,callback)=>{
         return verify(rule,value,regs.shareCode,callback)
+    },
+    nickName: (rule,value,callback)=>{
+        return verify(rule,value,regs.nickName,callback)
     },
 }
 

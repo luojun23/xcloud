@@ -11,6 +11,7 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\FileInfoController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\impl\UserInfoServiceImpl.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\XcloudApplication.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\FileTypeEnum.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\CaptchaUtil.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\ResponseCodeEnum.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\exception\BusinessException.java
@@ -28,6 +29,7 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\ResponseVO.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\FileShareController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\query\FileShareQuery.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\FileInfoVO.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\config\RedisConfig.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\StringTools.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\query\BaseParam.java

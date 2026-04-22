@@ -8,6 +8,7 @@ import com.njtech.xcloud.entity.vo.PaginationResultVO;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -87,4 +88,5 @@ public interface FileInfoService {
 	 */
 	void updateUserAvatar(String userId, MultipartFile avatar);
 
+	void uploadFile(SessionWebUserVO webUserVO, String fileId, MultipartFile file, String fileName, String fileMd5, String filePid, Integer chunkIndex, Integer chunks);
 }
