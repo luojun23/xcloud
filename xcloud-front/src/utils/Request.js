@@ -86,6 +86,7 @@ const request = (config) => {
         'X-Requested-width': 'XMLHttpRequest',
     }
     return instance.post(url, formData, {
+        timeout: config.timeout || 10 * 1000,
         onUploadProgress: (event) => {
             if (config.UploadProgressCallback) {
                 config.UploadProgressCallback(event);

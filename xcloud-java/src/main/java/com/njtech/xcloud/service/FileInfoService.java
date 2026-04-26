@@ -2,6 +2,7 @@
 
 import java.util.List;
 
+import com.njtech.xcloud.dto.UploadResultDto;
 import com.njtech.xcloud.entity.query.FileInfoQuery;
 import com.njtech.xcloud.entity.po.FileInfo;
 import com.njtech.xcloud.entity.vo.PaginationResultVO;
@@ -88,5 +89,10 @@ public interface FileInfoService {
 	 */
 	void updateUserAvatar(String userId, MultipartFile avatar);
 
-	void uploadFile(SessionWebUserVO webUserVO, String fileId, MultipartFile file, String fileName, String fileMd5, String filePid, Integer chunkIndex, Integer chunks);
+	UploadResultDto uploadFile(SessionWebUserVO webUserVO, String fileId, MultipartFile file, String fileName, String fileMd5, String filePid, Integer chunkIndex, Integer chunks);
+
+	/**
+	 * 异步合并分片
+	 */
+	void mergeChunks(String userId, String fileId, String fileName, Integer chunks);
 }

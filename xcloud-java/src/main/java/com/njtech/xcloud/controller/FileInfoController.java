@@ -2,6 +2,7 @@ package com.njtech.xcloud.controller;
 
 import com.njtech.xcloud.annotation.GlobalInterceptor;
 import com.njtech.xcloud.annotation.VerifyParam;
+import com.njtech.xcloud.dto.UploadResultDto;
 import com.njtech.xcloud.entity.constants.Constants;
 import com.njtech.xcloud.entity.enums.FileCategoryEnum;
 import com.njtech.xcloud.entity.po.FileInfo;
@@ -58,19 +59,21 @@ public class FileInfoController extends ABaseController {
 	}
 
 
+	/**
+	 * 上传文件 chunks 分片上传
+	 */
 	@GlobalInterceptor(checkParams = true)
 	@RequestMapping("/uploadFile")
 	public ResponseVO uploadFile(HttpSession session,
-								 String fileId,
-								 MultipartFile file,
-								 @VerifyParam(required = true) String fileName,
-								 @VerifyParam(required = true) String fileMd5,
-								 @VerifyParam(required = true) String filePid,
-								 @VerifyParam(required = true) Integer chunkIndex,
-								 @VerifyParam(required = true) Integer chunks
+									  String fileId,
+									  MultipartFile file,
+									  @VerifyParam(required = true) String fileName,
+									  @VerifyParam(required = true) String fileMd5,
+									  @VerifyParam(required = true) String filePid,
+									  @VerifyParam(required = true) Integer chunkIndex,
+									  @VerifyParam(required = true) Integer chunks
 	) {
 		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
-		fileInfoService.uploadFile(webUserVO, fileId, file, fileName, fileMd5, filePid, chunkIndex, chunks);
-		return getSuccessResponseVO(null);
+		return getSuccessResponseVO(fileInfoService.uploadFile(webUserVO, fileId, file, fileName, fileMd5, filePid, chunkIndex, chunks));
 	}
 }

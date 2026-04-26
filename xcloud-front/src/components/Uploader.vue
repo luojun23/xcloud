@@ -189,7 +189,7 @@ const addFile =async (file,filePid)=>{
 }
 defineExpose({addFile})
 
-const chunkSize = 1024*1024*10      //分片大小为10M
+const chunkSize = 1024*1024*5      //分片大小为10M
 //计算MD5
 const computeMd5 = (fileItem)=>{
     let file = fileItem.file;
@@ -262,6 +262,7 @@ const uploadFile =async (uid,chunkIndex)=>{
       url:api.upload,
       showLoading:false,
       dataType:"file",
+      timeout: 60 * 1000,
       params:{
         file:chunkFile,
         fileName: file.name,

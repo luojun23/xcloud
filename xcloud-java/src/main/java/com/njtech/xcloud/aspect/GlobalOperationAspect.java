@@ -75,7 +75,7 @@ public class GlobalOperationAspect {
         SessionWebUserVO userInfo = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
 
         if (userInfo == null) {
-            throw new BusinessException("用户未登录或登录已过期");
+            throw new BusinessException(ResponseCodeEnum.CODE_901);
         }
     }
 

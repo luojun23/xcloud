@@ -64,7 +64,25 @@ public class StringTools {
         return RandomStringUtils.random(count,false,true);
     }
 
+    public static String getRandomString(Integer count) {
+        return RandomStringUtils.random(count,true,false);
+    }
+
     public static String Md5(String str){
         return org.springframework.util.DigestUtils.md5DigestAsHex(str.getBytes());
+    }
+
+    /**
+     * 获取文件后缀名
+     */
+    public static String getFileSuffix(String fileName) {
+        if (StringTools.isEmpty(fileName)) {
+            return "";
+        }
+        int index = fileName.lastIndexOf(".");
+        if (index == -1 || index == fileName.length() - 1) {
+            return "";
+        }
+        return fileName.substring(index + 1);
     }
 }

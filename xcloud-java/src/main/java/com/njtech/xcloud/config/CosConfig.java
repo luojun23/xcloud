@@ -23,10 +23,14 @@ public class CosConfig implements org.springframework.beans.factory.Initializing
     @Value("${tencent.cos.file.bucketname}")
     private String bucketName;
 
+    @Value("${project.folder}")
+    private String projectFolder;
+
     public static String END_POINT;
     public static String ACCESS_KEY_ID;
     public static String ACCESS_KEY_SECRET;
     public static String BUCKET_NAME;
+    public static String PROJECT_FOLDER;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -34,5 +38,6 @@ public class CosConfig implements org.springframework.beans.factory.Initializing
         ACCESS_KEY_ID = secretId;
         ACCESS_KEY_SECRET = secretKey;
         BUCKET_NAME = bucketName;
+        PROJECT_FOLDER = projectFolder;
     }
 }

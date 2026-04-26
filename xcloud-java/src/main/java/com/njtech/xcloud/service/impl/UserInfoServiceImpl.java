@@ -7,13 +7,16 @@ import com.njtech.xcloud.entity.constants.Constants;
 import com.njtech.xcloud.entity.enums.PageSize;
 import com.njtech.xcloud.entity.enums.ResponseCodeEnum;
 import com.njtech.xcloud.entity.enums.UserStatusEnum;
+import com.njtech.xcloud.entity.po.FileInfo;
 import com.njtech.xcloud.entity.po.UserInfo;
+import com.njtech.xcloud.entity.query.FileInfoQuery;
 import com.njtech.xcloud.entity.query.SimplePage;
 import com.njtech.xcloud.entity.query.UserInfoQuery;
 import com.njtech.xcloud.entity.vo.PaginationResultVO;
 import com.njtech.xcloud.entity.vo.ResponseVO;
 import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 import com.njtech.xcloud.exception.BusinessException;
+import com.njtech.xcloud.mappers.FileInfoMapper;
 import com.njtech.xcloud.mappers.UserInfoMapper;
 import com.njtech.xcloud.service.UserInfoService;
 import com.njtech.xcloud.utils.StringTools;
@@ -49,6 +52,9 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Resource
     private Appconfig appconfig;
+
+    @Resource
+    private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(UserInfoServiceImpl.class);
 
@@ -293,9 +299,10 @@ public class UserInfoServiceImpl implements UserInfoService {
         sessionWebUserVO.setNickName(userInfo.getNickName());
         boolean b = ArrayUtils.contains(appconfig.getAdminEmails().split(","), email);
         sessionWebUserVO.setAdmin(b);
-        //TODO 查询用户空间使用情况并存储到Redis
+        //查询用户空间使用情况并存储到Redis
         UserSpaceDto userSpaceDto = new UserSpaceDto();
-        userSpaceDto.setUseSpace(0L);
+        Long useSpace = this.fileInfoMapper.selectUseSpace(userInfo.getUserId());
+        userSpaceDto.setUseSpace(useSpace);
         userSpaceDto.setTotalSpace((long) userInfo.getTotalSpace());
         redisUtils.set(Constants.REDIS_KEY_USER_SPACE_USE + userInfo.getUserId(), userSpaceDto, Constants.REDIS_KEY_EXPIRES_DAY);
         return sessionWebUserVO;

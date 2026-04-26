@@ -9,7 +9,8 @@ public enum ResponseCodeEnum {
     CODE_500(500, "服务器返回错误，请联系管理员"),
     CODE_901(901, "未登录或登录超时，请重新登录"),
     CODE_902(902, "无权限访问"),
-    CODE_903(903, "参数校验失败");
+    CODE_903(903, "参数校验失败"),
+    CODE_904(904, "网盘空间不足");
 
     private Integer code;
 
