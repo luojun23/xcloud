@@ -47,7 +47,7 @@
       <!-- 导航     -->
       <Navigation ref="navigationRef" @navChange="navChange"></Navigation>
     </div>
-    <div class="file-list" v-if="tableData.list&&tableData.list.length>0">
+    <div class="file-list" v-show="tableData.list&&tableData.list.length>0">
       <Table
           ref="dataTableRef"
           :columns="columns"
@@ -101,7 +101,7 @@
         </template>
       </Table>
     </div>
-    <div class="no-data" v-else>
+    <div class="no-data" v-show="!(tableData.list&&tableData.list.length>0)">
       <div class="no-data-inner">
         <Icon iconName="no_data" :width="120" fit="fill"></Icon>
         <div class="tip">当前目录为空,上传你的第一个文件吧</div>
@@ -225,6 +225,10 @@ const newFolder = () => {
   if (editting.value) {
     return;
   }
+  // 确保 list 是数组（空目录时后端可能返回 null）
+  if (!tableData.value.list) {
+    tableData.value.list = [];
+  }
   tableData.value.list.forEach(element => {
     element.showEdit = false;
   })
@@ -234,10 +238,17 @@ const newFolder = () => {
     fileType: 0,
     fileId: "",
     filePid: currentFolder.value.fileId,
+    fileNameReal: "",
   });
   console.log(tableData.value)
-    nextTick(() => {
-    editNameRef.value.focus();
+  nextTick(() => {
+    // Vue3 v-for 中 ref 绑定不稳定，用 querySelector 兜底
+    if (editNameRef.value && editNameRef.value.focus) {
+      editNameRef.value.focus();
+    } else {
+      const inputEl = document.querySelector('.edit-panel .el-input__inner');
+      if (inputEl) inputEl.focus();
+    }
   })
 }
 //取消新建文件夹
@@ -253,8 +264,12 @@ const cancelNameEdit = (index) => {
 //保存
 const saveNameEdit = async (index) => {
   const {fileId, fileNameReal} = tableData.value.list[index];
-  if (fileNameReal == "" || fileNameReal.indexOf("/") != -1) {
+  if (!fileNameReal || fileNameReal == "" || fileNameReal.indexOf("/") != -1) {
     proxy.Message.warning("文件名不能为空且不含斜杠")
+    if (fileId == "") {
+      tableData.value.list.splice(index, 1);
+    }
+    editting.value = false;
     return;
   }
   let url = api.rename

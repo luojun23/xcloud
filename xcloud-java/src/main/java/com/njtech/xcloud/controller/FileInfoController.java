@@ -12,6 +12,7 @@ import com.njtech.xcloud.entity.vo.PaginationResultVO;
 import com.njtech.xcloud.entity.vo.ResponseVO;
 import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 import com.njtech.xcloud.service.FileInfoService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,6 +20,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 /**
  * 文件信息表 Controller
@@ -86,6 +88,7 @@ public class FileInfoController extends ABaseController {
 	 * cover 值为 /file/202604/xxx.jpg（数据库中 file_cover 的相对路径）
 	 */
 	@GetMapping("/getImage/**")
+	@GlobalInterceptor
 	public void getImage(
 			HttpServletRequest request,
 			HttpServletResponse response) {
@@ -99,6 +102,7 @@ public class FileInfoController extends ABaseController {
 	 * 获取视频 HLS m3u8 索引文件
 	 */
 	@GetMapping("/ts/getVideoInfo/{fileId}")
+	@GlobalInterceptor
 	public void getVideoInfo(@PathVariable("fileId") String fileId, HttpServletResponse response) {
 		fileInfoService.getVideoInfo(fileId, response);
 	}
@@ -107,9 +111,32 @@ public class FileInfoController extends ABaseController {
 	 * 获取视频 HLS ts 切片文件
 	 */
 	@GetMapping("/ts/{fileId}/{tsName}")
+	@GlobalInterceptor
 	public void getVideo(@PathVariable("fileId") String fileId,
 						 @PathVariable("tsName") String tsName,
 						 HttpServletResponse response) {
 		fileInfoService.getVideo(fileId, tsName, response);
+	}
+
+
+	@PostMapping("/newFolder")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO newFolder(HttpSession session,
+								@VerifyParam(required = true) String fileName,
+								@VerifyParam(required = true) String filePid) {
+		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+		FileInfo fileInfo = fileInfoService.newFolder(webUserVO.getUserId(), fileName, filePid);
+		FileInfoVO fileInfoVO = new FileInfoVO();
+		BeanUtils.copyProperties(fileInfo, fileInfoVO);
+		return getSuccessResponseVO(fileInfoVO);
+	}
+
+
+	@PostMapping("/getFolderInfo")
+	@GlobalInterceptor
+	public ResponseVO getFolderInfo(HttpSession session, String path) {
+		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+		List<FileInfo> folderList = fileInfoService.getFolderInfo(webUserVO.getUserId(), path);
+		return getSuccessResponseVO(folderList);
 	}
 }

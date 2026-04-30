@@ -34,6 +34,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -269,6 +270,56 @@ public class FileInfoServiceImpl implements FileInfoService {
         }
     }
 
+    /**
+     * 新建文件夹
+     */
+    @Override
+    public FileInfo newFolder(String userId, String fileName, String filePid) {
+        Date curDate = new Date();
+
+        // 自动重命名（同目录下不能有同名文件夹）
+        fileName = autoRename(userId, filePid, fileName);
+
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.setFileId(StringTools.getRandomString(Constants.TEN));
+        fileInfo.setUserId(userId);
+        fileInfo.setFilePid(filePid);
+        fileInfo.setFileName(fileName);
+        fileInfo.setFolderType(FileFolderTypeEnums.FOLDER.getType());
+        fileInfo.setFileCategory(0);
+        fileInfo.setFileType(0);
+        fileInfo.setStatus(Constants.TRANSFER_SUCCESS);
+        fileInfo.setDelFlag(Constants.USING);
+        fileInfo.setCreateTime(curDate);
+        fileInfo.setLastUpdateTime(curDate);
+
+        this.fileInfoMapper.insert(fileInfo);
+        return fileInfo;
+    }
+
+    /**
+     * 获取目录导航信息
+     */
+    @Override
+    public List<FileInfo> getFolderInfo(String userId, String path) {
+        List<FileInfo> folderList = new ArrayList<>();
+        if (StringTools.isEmpty(path)) {
+            return folderList;
+        }
+        String[] folderIds = path.split("/");
+        for (String folderId : folderIds) {
+            if (StringTools.isEmpty(folderId)) {
+                continue;
+            }
+            FileInfo folder = this.fileInfoMapper.selectByFileIdAndUserId(folderId, userId);
+            if (folder != null && folder.getFolderType() != null
+                    && folder.getFolderType().equals(FileFolderTypeEnums.FOLDER.getType())) {
+                folderList.add(folder);
+            }
+        }
+        return folderList;
+    }
+
     @Override
     public UploadResultDto uploadFile(SessionWebUserVO webUserVO, String fileId, MultipartFile file,
                                       String fileName, String fileMd5, String filePid,
@@ -436,10 +487,10 @@ public class FileInfoServiceImpl implements FileInfoService {
                 generateThumbnail(imagePathAbsolute, coverPathAbsolute, Constants.THUMB_WIDTH, Constants.THUMB_HEIGHT, false);
             }
 
-            FileInfo updateFileInfo = new FileInfo();
-            updateFileInfo.setFileCover(coverPath);
-            this.fileInfoMapper.updateByFileIdAndUserId(updateFileInfo, fileId, userId);
-
+            if (coverPath != null) {
+                updateInfo.setFileCover(coverPath);
+                this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, fileId, userId);
+            }
         } catch (Exception e) {
             logger.error("合并分片失败: fileId=" + fileId, e);
             transferFlag = false;

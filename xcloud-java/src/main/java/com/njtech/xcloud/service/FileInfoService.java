@@ -99,6 +99,16 @@ public interface FileInfoService {
 	void getImage(String cover, HttpServletResponse response);
 
 	/**
+	 * 新建文件夹
+	 */
+	FileInfo newFolder(String userId, String fileName, String filePid);
+
+	/**
+	 * 获取目录导航信息
+	 */
+	List<FileInfo> getFolderInfo(String userId, String path);
+
+	/**
 	 * 获取视频 HLS m3u8 索引文件
 	 */
 	void getVideoInfo(String fileId, HttpServletResponse response);
