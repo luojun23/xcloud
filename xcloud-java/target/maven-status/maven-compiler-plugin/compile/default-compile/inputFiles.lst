@@ -9,6 +9,7 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\config\CosConfig.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\dto\UserSpaceDto.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\mappers\BaseMapper.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\ProcessUtils.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\EmailCodeService.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\mappers\FileInfoMapper.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\FileInfoController.java
@@ -21,7 +22,6 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\constants\Constants.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\VerifyRegexEnum.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\FileShareService.java
-C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\COSUtils.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\mappers\EmailCodeMapper.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\UserInfoController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\mappers\UserInfoMapper.java
@@ -52,7 +52,10 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\PaginationResultVO.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\DateUtil.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\query\EmailCodeQuery.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\FileTypeEnums.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\FileUtils.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\ABaseController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\annotation\GlobalInterceptor.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\FileFolderTypeEnums.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\config\RedisComponent.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\SessionWebUserVO.java

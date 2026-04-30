@@ -60,12 +60,14 @@
       >
         <template #fileName="{ index,row }">
           <div class="file-item" @mouseenter="showOp(row)" @mouseleave="cancelShowOp(row)">
-            <template v-if="(row.fileType==3)&&row.status==2">
-              <Icon :cover="row.fileCover" :width="34"></Icon>
+            <template v-if="(row.fileType==1||row.fileType==3)&&row.status==2">
+              <Icon :cover="row.fileCover" :width="34" @click="preview(row)"></Icon>
             </template>
             <template v-else>
-              <Icon v-if="row.folderType == 0" :file-type="row.fileType"></Icon>
-              <Icon v-if="row.folderType == 1" :file-type="0"></Icon>
+              <!-- 文件 -->
+              <Icon v-if="row.folderType == 0" :file-type="row.fileType" @click="preview(row)"></Icon>
+              <!-- 文件夹 -->
+              <Icon v-if="row.folderType == 1" :file-type="0" @click="preview(row)"></Icon>
             </template>
             <span class="file-name" :title="row.fileName" v-if="!row.showEdit">
               <span @click="preview(row)"> {{ row.fileName }}</span>

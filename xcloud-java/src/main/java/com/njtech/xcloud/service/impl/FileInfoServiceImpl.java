@@ -5,6 +5,7 @@ import com.njtech.xcloud.config.RedisUtils;
 import com.njtech.xcloud.dto.UploadResultDto;
 import com.njtech.xcloud.entity.constants.Constants;
 import com.njtech.xcloud.entity.enums.FileFolderTypeEnums;
+import com.njtech.xcloud.entity.enums.FileTypeEnums;
 import com.njtech.xcloud.entity.enums.PageSize;
 import com.njtech.xcloud.entity.enums.UploadStatusEnums;
 import com.njtech.xcloud.entity.po.FileInfo;
@@ -16,6 +17,7 @@ import com.njtech.xcloud.exception.BusinessException;
 import com.njtech.xcloud.mappers.FileInfoMapper;
 import com.njtech.xcloud.service.FileInfoService;
 import com.njtech.xcloud.utils.FileUtils;
+import com.njtech.xcloud.utils.ProcessUtils;
 import com.njtech.xcloud.utils.StringTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,431 +45,612 @@ import java.util.concurrent.CompletableFuture;
 @Service("fileInfoService")
 public class FileInfoServiceImpl implements FileInfoService {
 
-	@Resource
-	private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
+    @Resource
+    private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 
-	@Resource
-	private RedisUtils redisUtils;
+    @Resource
+    private RedisUtils redisUtils;
 
-	@Resource
-	private RedisComponent redisComponent;
+    @Resource
+    private RedisComponent redisComponent;
 
-	@Resource
-	private ApplicationContext applicationContext;
+    @Resource
+    private ApplicationContext applicationContext;
 
-	public static final Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
-	/**
-	 * 根据条件查询列表
-	 */
-	@Override
-	public List<FileInfo> findListByParam(FileInfoQuery param) {
-		return this.fileInfoMapper.selectList(param);
-	}
+    public static final Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
 
-	/**
-	 * 根据条件查询列表
-	 */
-	@Override
-	public Integer findCountByParam(FileInfoQuery param) {
-		return this.fileInfoMapper.selectCount(param);
-	}
+    /**
+     * 根据条件查询列表
+     */
+    @Override
+    public List<FileInfo> findListByParam(FileInfoQuery param) {
+        return this.fileInfoMapper.selectList(param);
+    }
 
-	/**
-	 * 分页查询方法
-	 */
-	@Override
-	public PaginationResultVO<FileInfo> findListByPage(FileInfoQuery param) {
-		int count = this.findCountByParam(param);
-		int pageSize = param.getPageSize() == null ? PageSize.SIZE15.getSize() : param.getPageSize();
+    /**
+     * 根据条件查询列表
+     */
+    @Override
+    public Integer findCountByParam(FileInfoQuery param) {
+        return this.fileInfoMapper.selectCount(param);
+    }
 
-		SimplePage page = new SimplePage(param.getPageNo(), count, pageSize);
-		param.setSimplePage(page);
-		List<FileInfo> list = this.findListByParam(param);
-		PaginationResultVO<FileInfo> result = new PaginationResultVO(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
-		return result;
-	}
+    /**
+     * 分页查询方法
+     */
+    @Override
+    public PaginationResultVO<FileInfo> findListByPage(FileInfoQuery param) {
+        int count = this.findCountByParam(param);
+        int pageSize = param.getPageSize() == null ? PageSize.SIZE15.getSize() : param.getPageSize();
 
-	/**
-	 * 新增
-	 */
-	@Override
-	public Integer add(FileInfo bean) {
-		return this.fileInfoMapper.insert(bean);
-	}
+        SimplePage page = new SimplePage(param.getPageNo(), count, pageSize);
+        param.setSimplePage(page);
+        List<FileInfo> list = this.findListByParam(param);
+        PaginationResultVO<FileInfo> result = new PaginationResultVO(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
+        return result;
+    }
 
-	/**
-	 * 批量新增
-	 */
-	@Override
-	public Integer addBatch(List<FileInfo> listBean) {
-		if (listBean == null || listBean.isEmpty()) {
-			return 0;
-		}
-		return this.fileInfoMapper.insertBatch(listBean);
-	}
+    /**
+     * 新增
+     */
+    @Override
+    public Integer add(FileInfo bean) {
+        return this.fileInfoMapper.insert(bean);
+    }
 
-	/**
-	 * 批量新增或者修改
-	 */
-	@Override
-	public Integer addOrUpdateBatch(List<FileInfo> listBean) {
-		if (listBean == null || listBean.isEmpty()) {
-			return 0;
-		}
-		return this.fileInfoMapper.insertOrUpdateBatch(listBean);
-	}
+    /**
+     * 批量新增
+     */
+    @Override
+    public Integer addBatch(List<FileInfo> listBean) {
+        if (listBean == null || listBean.isEmpty()) {
+            return 0;
+        }
+        return this.fileInfoMapper.insertBatch(listBean);
+    }
 
-	/**
-	 * 多条件更新
-	 */
-	@Override
-	public Integer updateByParam(FileInfo bean, FileInfoQuery param) {
-		StringTools.checkParam(param);
-		return this.fileInfoMapper.updateByParam(bean, param);
-	}
+    /**
+     * 批量新增或者修改
+     */
+    @Override
+    public Integer addOrUpdateBatch(List<FileInfo> listBean) {
+        if (listBean == null || listBean.isEmpty()) {
+            return 0;
+        }
+        return this.fileInfoMapper.insertOrUpdateBatch(listBean);
+    }
 
-	/**
-	 * 多条件删除
-	 */
-	@Override
-	public Integer deleteByParam(FileInfoQuery param) {
-		StringTools.checkParam(param);
-		return this.fileInfoMapper.deleteByParam(param);
-	}
+    /**
+     * 多条件更新
+     */
+    @Override
+    public Integer updateByParam(FileInfo bean, FileInfoQuery param) {
+        StringTools.checkParam(param);
+        return this.fileInfoMapper.updateByParam(bean, param);
+    }
 
-	/**
-	 * 根据FileIdAndUserId获取对象
-	 */
-	@Override
-	public FileInfo getFileInfoByFileIdAndUserId(String fileId, String userId) {
-		return this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
-	}
+    /**
+     * 多条件删除
+     */
+    @Override
+    public Integer deleteByParam(FileInfoQuery param) {
+        StringTools.checkParam(param);
+        return this.fileInfoMapper.deleteByParam(param);
+    }
 
-	/**
-	 * 根据FileIdAndUserId修改
-	 */
-	@Override
-	public Integer updateFileInfoByFileIdAndUserId(FileInfo bean, String fileId, String userId) {
-		return this.fileInfoMapper.updateByFileIdAndUserId(bean, fileId, userId);
-	}
+    /**
+     * 根据FileIdAndUserId获取对象
+     */
+    @Override
+    public FileInfo getFileInfoByFileIdAndUserId(String fileId, String userId) {
+        return this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+    }
 
-	/**
-	 * 根据FileIdAndUserId删除
-	 */
-	@Override
-	public Integer deleteFileInfoByFileIdAndUserId(String fileId, String userId) {
-		return this.fileInfoMapper.deleteByFileIdAndUserId(fileId, userId);
-	}
+    /**
+     * 根据FileIdAndUserId修改
+     */
+    @Override
+    public Integer updateFileInfoByFileIdAndUserId(FileInfo bean, String fileId, String userId) {
+        return this.fileInfoMapper.updateByFileIdAndUserId(bean, fileId, userId);
+    }
 
-	/**
-	 * 获取文件流并输出到响应
-	 * @param userId 用户ID
-	 * @param response HTTP响应
-	 */
-	@Override
-	public void getFile(String userId, HttpServletResponse response) {
-		String avatarPath = FileUtils.getFullPath(Constants.FILE_FOLDER_AVATAR + userId + ".jpg");
-		File avatarFile = new File(avatarPath);
-		if (!avatarFile.exists()) {
-			avatarPath = FileUtils.getFullPath(Constants.FILE_FOLDER_AVATAR + "default_avatar.jpg");
-			avatarFile = new File(avatarPath);
-		}
+    /**
+     * 根据FileIdAndUserId删除
+     */
+    @Override
+    public Integer deleteFileInfoByFileIdAndUserId(String fileId, String userId) {
+        return this.fileInfoMapper.deleteByFileIdAndUserId(fileId, userId);
+    }
 
-		try (FileInputStream inputStream = new FileInputStream(avatarFile);
-			 ServletOutputStream outputStream = response.getOutputStream()) {
-			response.setContentType("image/jpeg");
-			response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-			response.setHeader("Pragma", "no-cache");
-			response.setDateHeader("Expires", 0);
+    /**
+     * 获取文件流并输出到响应
+     *
+     * @param userId   用户ID
+     * @param response HTTP响应
+     */
+    @Override
+    public void getFile(String userId, HttpServletResponse response) {
+        String avatarPath = FileUtils.getFullPath(Constants.FILE_FOLDER_AVATAR + userId + ".jpg");
+        File avatarFile = new File(avatarPath);
+        if (!avatarFile.exists()) {
+            avatarPath = FileUtils.getFullPath(Constants.FILE_FOLDER_AVATAR + "default_avatar.jpg");
+            avatarFile = new File(avatarPath);
+        }
 
-			byte[] buffer = new byte[4096];
-			int bytesRead;
-			while ((bytesRead = inputStream.read(buffer)) != -1) {
-				outputStream.write(buffer, 0, bytesRead);
-			}
-			outputStream.flush();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new BusinessException("获取图片失败: " + e.getMessage());
-		}
-	}
+        try (FileInputStream inputStream = new FileInputStream(avatarFile);
+             ServletOutputStream outputStream = response.getOutputStream()) {
+            response.setContentType("image/jpeg");
+            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+            response.setDateHeader("Expires", 0);
 
-	@Override
-	public void updateUserAvatar(String userId, MultipartFile avatar) {
-		try {
-			// 参数校验
-			if (avatar == null || avatar.isEmpty()) {
-				throw new BusinessException("头像文件不能为空");
-			}
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new BusinessException("获取图片失败: " + e.getMessage());
+        }
+    }
 
-			String avatarPath = FileUtils.getFullPath(Constants.FILE_FOLDER_AVATAR + userId + ".jpg");
-			File avatarFile = new File(avatarPath);
-			File parentDir = avatarFile.getParentFile();
-			if (parentDir != null && !parentDir.exists()) {
-				parentDir.mkdirs();
-			}
+    @Override
+    public void updateUserAvatar(String userId, MultipartFile avatar) {
+        try {
+            // 参数校验
+            if (avatar == null || avatar.isEmpty()) {
+                throw new BusinessException("头像文件不能为空");
+            }
 
-			avatar.transferTo(avatarFile);
-			logger.info("上传头像成功: " + avatarPath);
+            String avatarPath = FileUtils.getFullPath(Constants.FILE_FOLDER_AVATAR + userId + ".jpg");
+            File avatarFile = new File(avatarPath);
+            File parentDir = avatarFile.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
+            }
 
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new BusinessException("更新头像失败: " + e.getMessage());
-		}
-	}
+            avatar.transferTo(avatarFile);
+            logger.info("上传头像成功: " + avatarPath);
 
-	@Override
-	public UploadResultDto uploadFile(SessionWebUserVO webUserVO, String fileId, MultipartFile file,
-												  String fileName, String fileMd5, String filePid,
-												  Integer chunkIndex, Integer chunks) {
-		UploadResultDto result = new UploadResultDto();
-		String userId = webUserVO.getUserId();
-		Date curDate = new Date();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new BusinessException("更新头像失败: " + e.getMessage());
+        }
+    }
 
-		// === 第一块分片：秒传检查 ===
-		if (chunkIndex == 0) {
-			FileInfoQuery query = new FileInfoQuery();
-			query.setFileMd5(fileMd5);
-			query.setDelFlag(Constants.USING);
-			List<FileInfo> dbFileList = this.fileInfoMapper.selectList(query);
+    /**
+     * 获取缩略图/图片并以流形式输出到响应
+     *
+     * @param cover    图片相对路径（如 /file/202604/xxx_.jpg）
+     * @param response HTTP响应
+     */
+    @Override
+    public void getImage(String cover, HttpServletResponse response) {
+        if (cover == null || cover.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
 
-			if (!dbFileList.isEmpty()) {
-				// 秒传：复制已有记录
-				FileInfo dbFile = dbFileList.get(0);
-				String newFileId = StringTools.getRandomString(Constants.TEN);
+        String fullPath = FileUtils.getFullPath(cover);
+        File imageFile = new File(fullPath);
 
-				FileInfo newFile = new FileInfo();
-				BeanUtils.copyProperties(dbFile, newFile);
-				newFile.setFileId(newFileId);
-				newFile.setUserId(userId);
-				newFile.setFilePid(filePid);
-				newFile.setFileName(autoRename(userId, filePid, fileName));
-				newFile.setCreateTime(curDate);
-				newFile.setLastUpdateTime(curDate);
-				newFile.setStatus(Constants.TRANSFER_SUCCESS);
-				newFile.setDelFlag(Constants.USING);
-				this.fileInfoMapper.insert(newFile);
+        if (!imageFile.exists()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
 
-				// 更新用户使用空间
-				redisComponent.updateUserSpace(userId, newFile.getFileSize());
+        // 根据后缀判断 Content-Type
+        String contentType = "image/jpeg";
+        String lowerName = imageFile.getName().toLowerCase();
+        if (lowerName.endsWith(".png")) {
+            contentType = "image/png";
+        } else if (lowerName.endsWith(".gif")) {
+            contentType = "image/gif";
+        } else if (lowerName.endsWith(".webp")) {
+            contentType = "image/webp";
+        }
 
-				result.setFileId(newFileId);
-				result.setStatus(UploadStatusEnums.UPLOAD_SECONDS.getCode());
-				return result;
-			}
-		}
+        response.setContentType(contentType);
+        response.setHeader("Cache-Control", "max-age=86400");
+        response.setHeader("Pragma", "cache");
 
-		// === 非秒传：分片上传逻辑 ===
-		// 生成或确认 fileId
-		if (StringTools.isEmpty(fileId)) {
-			fileId = StringTools.getRandomString(Constants.TEN);
-		}
+        try (FileInputStream inputStream = new FileInputStream(imageFile);
+             ServletOutputStream outputStream = response.getOutputStream()) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.flush();
+        } catch (Exception e) {
+            logger.error("获取图片失败: cover={}", cover, e);
+        }
+    }
 
-		Long chunkSize = file.getSize();
+    @Override
+    public UploadResultDto uploadFile(SessionWebUserVO webUserVO, String fileId, MultipartFile file,
+                                      String fileName, String fileMd5, String filePid,
+                                      Integer chunkIndex, Integer chunks) {
+        UploadResultDto result = new UploadResultDto();
+        String userId = webUserVO.getUserId();
+        Date curDate = new Date();
 
-		// 检查用户磁盘空间
-		redisComponent.checkUserSpace(userId, chunkSize, fileId);
+        // === 第一块分片：秒传检查 ===
+        if (chunkIndex == 0) {
+            FileInfoQuery query = new FileInfoQuery();
+            query.setFileMd5(fileMd5);
+            query.setDelFlag(Constants.USING);
+            List<FileInfo> dbFileList = this.fileInfoMapper.selectList(query);
 
-		// 上传分片到本地临时目录
-		String tempKey = Constants.FILE_FOLDER_TEMP + userId + fileId + "/" + chunkIndex;
-		FileUtils.uploadChunkToLocal(file, tempKey);
+            if (!dbFileList.isEmpty()) {
+                // 秒传：复制已有记录
+                FileInfo dbFile = dbFileList.get(0);
+                String newFileId = StringTools.getRandomString(Constants.TEN);
 
-		// 更新 Redis 临时文件大小
-		redisComponent.updateTempSize(userId, fileId, chunkSize);
+                FileInfo newFile = new FileInfo();
+                BeanUtils.copyProperties(dbFile, newFile);
+                newFile.setFileId(newFileId);
+                newFile.setUserId(userId);
+                newFile.setFilePid(filePid);
+                newFile.setFileName(autoRename(userId, filePid, fileName));
+                newFile.setCreateTime(curDate);
+                newFile.setLastUpdateTime(curDate);
+                newFile.setStatus(Constants.TRANSFER_SUCCESS);
+                newFile.setDelFlag(Constants.USING);
+                this.fileInfoMapper.insert(newFile);
 
-		// 不是最后一块，直接返回
-		if (chunkIndex < chunks - 1) {
-			result.setFileId(fileId);
-			result.setStatus(UploadStatusEnums.UPLOADING.getCode());
-			return result;
-		}
+                // 更新用户使用空间
+                redisComponent.updateUserSpace(userId, newFile.getFileSize());
 
-		// === 最后一块分片 ===
-		Long totalSize = redisComponent.getTempSize(userId, fileId);
+                result.setFileId(newFileId);
+                result.setStatus(UploadStatusEnums.UPLOAD_SECONDS.getCode());
+                return result;
+            }
+        }
 
-		Integer fileType = getFileType(fileName);
-		Integer fileCategory = getFileCategory(fileName);
+        // === 非秒传：分片上传逻辑 ===
+        // 生成或确认 fileId
+        if (StringTools.isEmpty(fileId)) {
+            fileId = StringTools.getRandomString(Constants.TEN);
+        }
 
-		// 自动重命名：检查同目录下是否存在同名文件
-		fileName = autoRename(userId, filePid, fileName);
+        Long chunkSize = file.getSize();
 
-		// 保存文件信息到数据库
-		FileInfo fileInfo = new FileInfo();
-		fileInfo.setFileId(fileId);
-		fileInfo.setUserId(userId);
-		fileInfo.setFileMd5(fileMd5);
-		fileInfo.setFilePid(filePid);
-		fileInfo.setFileName(fileName);
-		fileInfo.setFileSize(totalSize);
-		fileInfo.setCreateTime(curDate);
-		fileInfo.setLastUpdateTime(curDate);
-		fileInfo.setFolderType(FileFolderTypeEnums.FILE.getType()); // 文件
-		fileInfo.setFileCategory(fileCategory);
-		fileInfo.setFileType(fileType);
-		fileInfo.setStatus(Constants.TRANSFER_ING); // 转码中（等待合并）
-		fileInfo.setDelFlag(Constants.USING);
+        // 检查用户磁盘空间
+        redisComponent.checkUserSpace(userId, chunkSize, fileId);
 
-		this.fileInfoMapper.insert(fileInfo);
+        // 上传分片到本地临时目录
+        String tempKey = Constants.FILE_FOLDER_TEMP + userId + fileId + "/" + chunkIndex;
+        FileUtils.uploadChunkToLocal(file, tempKey);
 
-		// 更新用户使用空间
-		redisComponent.updateUserSpace(userId, totalSize);
+        // 更新 Redis 临时文件大小
+        redisComponent.updateTempSize(userId, fileId, chunkSize);
 
-		// 清除 Redis 临时大小
-		redisUtils.del(Constants.REDIS_KEY_TEMP_SIZE + userId + ":" + fileId);
+        // 不是最后一块，直接返回
+        if (chunkIndex < chunks - 1) {
+            result.setFileId(fileId);
+            result.setStatus(UploadStatusEnums.UPLOADING.getCode());
+            return result;
+        }
 
-		// 异步合并分片（使用 CompletableFuture 确保真正异步执行，避免 Spring 代理失效导致同步阻塞）
-		asyncMergeChunks(userId, fileId, fileName, chunks);
+        // === 最后一块分片 ===
+        Long totalSize = redisComponent.getTempSize(userId, fileId);
 
-		result.setFileId(fileId);
-		result.setStatus(UploadStatusEnums.UPLOAD_FINISH.getCode());
-		return result;
-	}
+        String fileSuffix = StringTools.getFileSuffix(fileName);
+        FileTypeEnums fileTypeEnums = FileTypeEnums.getFileTypeBySuffix("." + fileSuffix);
+        Integer fileType = fileTypeEnums.getType();
+        Integer fileCategory = fileTypeEnums.getCategory().getCategory();
 
-	/**
-	 * 异步合并分片（包装方法，解决 Lambda 变量捕获问题）
-	 */
-	private void asyncMergeChunks(String userId, String fileId, String fileName, Integer chunks) {
-		CompletableFuture.runAsync(() -> mergeChunks(userId, fileId, fileName, chunks));
-	}
+        // 自动重命名：检查同目录下是否存在同名文件
+        fileName = autoRename(userId, filePid, fileName);
 
-	/**
-	 * 异步合并分片
-	 */
-	@Async
-	@Override
-	public void mergeChunks(String userId, String fileId, String fileName, Integer chunks) {
-		try {
-			String tempRelativeDir = Constants.FILE_FOLDER_TEMP + userId + fileId;
+        // 保存文件信息到数据库
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.setFileId(fileId);
+        fileInfo.setUserId(userId);
+        fileInfo.setFileMd5(fileMd5);
+        fileInfo.setFilePid(filePid);
+        fileInfo.setFileName(fileName);
+        fileInfo.setFileSize(totalSize);
+        fileInfo.setCreateTime(curDate);
+        fileInfo.setLastUpdateTime(curDate);
+        fileInfo.setFolderType(FileFolderTypeEnums.FILE.getType()); // 文件
+        fileInfo.setFileCategory(fileCategory);
+        fileInfo.setFileType(fileType);
+        fileInfo.setStatus(Constants.TRANSFER_ING); // 转码中（等待合并）
+        fileInfo.setDelFlag(Constants.USING);
 
-			// 合并后的文件路径
-			String datePath = new SimpleDateFormat("yyyyMM").format(new Date());
-			String fileSuffix = StringTools.getFileSuffix(fileName);
-			String formalRelativePath = Constants.FILE_FOLDER_FILE + datePath + "/" + fileId
-					+ (fileSuffix.isEmpty() ? "" : "." + fileSuffix);
+        this.fileInfoMapper.insert(fileInfo);
 
-			// 合并分片到正式文件
-			FileUtils.mergeLocalChunks(tempRelativeDir, chunks, formalRelativePath);
+        // 更新用户使用空间
+        redisComponent.updateUserSpace(userId, totalSize);
 
-			// 更新数据库 filePath 和状态
-			FileInfo updateInfo = new FileInfo();
-			updateInfo.setFilePath(formalRelativePath);
-			updateInfo.setStatus(Constants.TRANSFER_SUCCESS);
-			this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, fileId, userId);
+        // 清除 Redis 临时大小
+        redisUtils.del(Constants.REDIS_KEY_TEMP_SIZE + userId + ":" + fileId);
 
-			// 删除本地临时分片
-			FileUtils.deleteLocalChunks(tempRelativeDir, chunks);
+        // 异步合并分片（使用 CompletableFuture 确保真正异步执行，避免 Spring 代理失效导致同步阻塞）
+        asyncMergeChunks(userId, fileId, fileName, chunks);
 
-			logger.info("文件合并完成: fileId={}, formalPath={}", fileId, formalRelativePath);
+        result.setFileId(fileId);
+        result.setStatus(UploadStatusEnums.UPLOAD_FINISH.getCode());
+        return result;
+    }
 
-		} catch (Exception e) {
-			logger.error("合并分片失败: fileId=" + fileId, e);
-			// 更新状态为转码失败
-			FileInfo updateInfo = new FileInfo();
-			updateInfo.setStatus(Constants.TRANSFER_FAIL);
-			this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, fileId, userId);
-			throw new BusinessException("文件转码失败");
-		}
-	}
+    /**
+     * 异步合并分片（包装方法，解决 Lambda 变量捕获问题）
+     */
+    private void asyncMergeChunks(String userId, String fileId, String fileName, Integer chunks) {
+        CompletableFuture.runAsync(() -> mergeChunks(userId, fileId, fileName, chunks));
+    }
+
+    /**
+     * 异步合并分片
+     */
+    @Async
+    @Override
+    public void mergeChunks(String userId, String fileId, String fileName, Integer chunks) {
+        boolean transferFlag = true;
+        String coverPath = null;
+        try {
+            String tempRelativeDir = Constants.FILE_FOLDER_TEMP + userId + fileId;
+
+            // 合并后的文件路径
+            String datePath = new SimpleDateFormat("yyyyMM").format(new Date());
+            String fileSuffix = StringTools.getFileSuffix(fileName);
+            String formalRelativePath = Constants.FILE_FOLDER_FILE + datePath + "/" + userId + fileId
+                    + (fileSuffix.isEmpty() ? "" : "." + fileSuffix);
+
+            // 合并分片到正式文件
+            FileUtils.mergeLocalChunks(tempRelativeDir, chunks, formalRelativePath);
+
+            // 更新数据库 filePath 和状态
+            FileInfo updateInfo = new FileInfo();
+            updateInfo.setFilePath(formalRelativePath);
+            updateInfo.setStatus(Constants.TRANSFER_SUCCESS);
+            this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, fileId, userId);
+
+            // 删除本地临时分片
+            FileUtils.deleteLocalChunks(tempRelativeDir, chunks);
+
+            logger.info("文件合并完成: fileId={}, formalPath={}", fileId, formalRelativePath);
+
+            // 视频文件：同步切割 + 生成缩略图
+            FileTypeEnums fileTypeEnums = FileTypeEnums.getFileTypeBySuffix("." + fileSuffix);
+            if (fileTypeEnums.getCategory().getCategory() == 1) {
+                // 视频：切片 + 缩略图
+                String videoPathAbsolute = FileUtils.getFullPath(formalRelativePath);
+                String outPath = Constants.FILE_FOLDER_FILE + datePath + "/" + userId + fileId;
+                videoCut(outPath, videoPathAbsolute, fileId);
+
+                coverPath = outPath + ".png";
+                String coverPathAbsolute = FileUtils.getFullPath(coverPath);
+                generateThumbnail(videoPathAbsolute, coverPathAbsolute, Constants.THUMB_WIDTH, Constants.THUMB_HEIGHT, true);
+            } else if (fileTypeEnums.getCategory().getCategory() == 3) {
+                // 图片：缩略图（将 . 替换为 _. 与原图区分）
+                String thumbRelativePath = formalRelativePath.replace(".", "_.");
+                coverPath = thumbRelativePath;
+                String coverPathAbsolute = FileUtils.getFullPath(thumbRelativePath);
+                String imagePathAbsolute = FileUtils.getFullPath(formalRelativePath);
+                generateThumbnail(imagePathAbsolute, coverPathAbsolute, Constants.THUMB_WIDTH, Constants.THUMB_HEIGHT, false);
+            }
+
+            FileInfo updateFileInfo = new FileInfo();
+            updateFileInfo.setFileCover(coverPath);
+            this.fileInfoMapper.updateByFileIdAndUserId(updateFileInfo, fileId, userId);
+
+        } catch (Exception e) {
+            logger.error("合并分片失败: fileId=" + fileId, e);
+            transferFlag = false;
+            throw new BusinessException("文件转码失败");
+        } finally {
+            // 仅在失败时更新状态，成功时已在前面更新过（避免覆盖 filePath）
+            if (!transferFlag) {
+                FileInfo updateInfo = new FileInfo();
+                updateInfo.setStatus(Constants.TRANSFER_FAIL);
+                this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, fileId, userId);
+            }
+        }
+    }
 
 
+    /**
+     * 视频文件切割：调用 ffmpeg 生成 m3u8 + ts 切片
+     *
+     * @param outPath   切片输出目录（相对路径）
+     * @param videoPath 视频文件完整路径
+     * @param fileId    文件ID
+     */
+    private void videoCut(String outPath, String videoPath, String fileId) {
+        String fullPath = FileUtils.getFullPath(outPath);
+        File tsFolder = new File(fullPath);
+        if (!tsFolder.exists()) {
+            tsFolder.mkdirs();
+        }
 
-	/**
-	 * 根据文件名获取文件类型
-	 * 1:视频 2:音频 3:图片 4:pdf 5:doc 6:excel 7:txt 8:code 9:zip 10:其他
-	 */
-	private Integer getFileType(String fileName) {
-		String suffix = StringTools.getFileSuffix(fileName).toLowerCase();
-		switch (suffix) {
-			case "mp4": case "avi": case "rmvb": case "mkv": case "mov":
-				return 1;
-			case "mp3": case "wav": case "wma": case "mp2": case "flac":
-			case "midi": case "ra": case "ape": case "aac": case "cda":
-				return 2;
-			case "jpeg": case "jpg": case "png": case "gif": case "bmp":
-			case "dds": case "psd": case "pdt": case "webp": case "xmp":
-			case "svg": case "tiff":
-				return 3;
-			case "pdf":
-				return 4;
-			case "doc": case "docx":
-				return 5;
-			case "xls": case "xlsx":
-				return 6;
-			case "txt":
-				return 7;
-			case "java": case "py": case "cpp": case "c": case "js":
-			case "html": case "css": case "xml": case "json": case "sql":
-				return 8;
-			case "zip": case "rar": case "7z": case "tar": case "gz":
-				return 9;
-			default:
-				return 10;
-		}
-	}
+        final String CMD_TRANSFER_2TS = "ffmpeg -y -i \"%s\" -c copy -bsf:v h264_mp4toannexb \"%s\"";
+        final String CMD_TRANSFER_2TS_FALLBACK = "ffmpeg -y -i \"%s\" -c:v libx264 -preset ultrafast -crf 23 -c:a aac -b:a 128k \"%s\"";
 
-	/**
-	 * 根据文件名获取文件分类
-	 * 1:视频 2:音频 3:图片 4:文档 5:其他
-	 */
-	private Integer getFileCategory(String fileName) {
-		String suffix = StringTools.getFileSuffix(fileName).toLowerCase();
-		switch (suffix) {
-			case "mp4": case "avi": case "rmvb": case "mkv": case "mov":
-				return 1;
-			case "mp3": case "wav": case "wma": case "mp2": case "flac":
-			case "midi": case "ra": case "ape": case "aac": case "cda":
-				return 2;
-			case "jpeg": case "jpg": case "png": case "gif": case "bmp":
-			case "dds": case "psd": case "pdt": case "webp": case "xmp":
-			case "svg": case "tiff":
-				return 3;
-			case "pdf": case "doc": case "docx": case "xls": case "xlsx": case "txt":
-				return 4;
-			default:
-				return 5;
-		}
-	}
+        String tsPath = fullPath + "/" + Constants.TS_NAME;
 
-	/**
-	 * 自动重命名：检查同目录下是否存在同名文件，存在则自动添加序号
-	 *
-	 * @param userId   用户ID
-	 * @param filePid  父目录ID
-	 * @param fileName 原始文件名
-	 * @return 可用的文件名
-	 */
-	private String autoRename(String userId, String filePid, String fileName) {
-		FileInfoQuery query = new FileInfoQuery();
-		query.setUserId(userId);
-		query.setFilePid(filePid);
-		query.setDelFlag(Constants.USING);
-		query.setFolderType(FileFolderTypeEnums.FILE.getType());
+        // 生成 .ts（先尝试 copy，失败则降级为转码）
+        String cmd = String.format(CMD_TRANSFER_2TS, videoPath, tsPath);
+        try {
+            ProcessUtils.executeCommand(cmd, true);
+        } catch (BusinessException e) {
+            logger.warn("视频copy失败，尝试转码, fileId={}, error={}", fileId, e.getMessage());
+            cmd = String.format(CMD_TRANSFER_2TS_FALLBACK, videoPath, tsPath);
+            ProcessUtils.executeCommand(cmd, true);
+        }
 
-		String fileSuffix = StringTools.getFileSuffix(fileName);
-		String nameWithoutSuffix = fileName;
-		if (!fileSuffix.isEmpty()) {
-			nameWithoutSuffix = fileName.substring(0, fileName.lastIndexOf("."));
-		}
+        // 生成标准 HLS m3u8 和切片 .ts（hls.js 需要标准 HLS 格式）
+        String m3u8Path = fullPath + "/" + Constants.M3U8_NAME;
+        String tsPattern = fullPath + "/" + fileId + "_%04d.ts";
+        cmd = String.format(
+                "ffmpeg -y -i \"%s\" -c copy -map 0 -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename \"%s\" \"%s\"",
+                tsPath, tsPattern, m3u8Path);
+        ProcessUtils.executeCommand(cmd, true);
 
-		String finalFileName = fileName;
-		query.setFileName(finalFileName);
-		Integer count = this.fileInfoMapper.selectCount(query);
-		if (count == 0) {
-			return fileName;
-		}
+        // 删除 index.ts
+        new File(tsPath).delete();
 
-		int index = 1;
-		do {
-			if (fileSuffix.isEmpty()) {
-				finalFileName = nameWithoutSuffix + " (" + index + ")";
-			} else {
-				finalFileName = nameWithoutSuffix + " (" + index + ")." + fileSuffix;
-			}
-			query.setFileName(finalFileName);
-			count = this.fileInfoMapper.selectCount(query);
-			index++;
-		} while (count > 0);
+        logger.info("视频切片完成, fileId={}", fileId);
+    }
 
-		return finalFileName;
-	}
+    /**
+     * 生成缩略图（支持视频和图片）
+     *
+     * @param sourcePath        源文件绝对路径
+     * @param coverPathAbsolute 缩略图输出绝对路径
+     * @param width             缩略图宽度（null 则不缩放）
+     * @param height            缩略图高度（null 则不缩放）
+     * @param isVideo           true=视频（取第1秒帧），false=图片
+     */
+    private void generateThumbnail(String sourcePath, String coverPathAbsolute, Integer width, Integer height, boolean isVideo) {
+        try {
+            String cmd;
+            if (isVideo) {
+                // 视频：取第1秒帧，按指定宽高比缩放
+                cmd = String.format("ffmpeg -i \"%s\" -y -vframes 1 -vf scale=%d:%d/a \"%s\"", sourcePath, width, height, coverPathAbsolute);
+            } else {
+                // 图片：指定宽度，高度按比例自动计算
+                cmd = String.format("ffmpeg -i \"%s\" -vf scale=%d:-1 \"%s\" -y", sourcePath, width, coverPathAbsolute);
+            }
+
+            ProcessUtils.executeCommand(cmd, 60);
+            logger.info("缩略图生成完成: isVideo={}, path={}", isVideo, coverPathAbsolute);
+        } catch (Exception e) {
+            logger.error("缩略图生成失败: isVideo={}", isVideo, e);
+        }
+    }
+
+    /**
+     * 获取视频 HLS m3u8 索引文件（修改 ts 路径为 API 路径后返回）
+     */
+    @Override
+    public void getVideoInfo(String fileId, HttpServletResponse response) {
+        FileInfo fileInfo = this.fileInfoMapper.selectByFileId(fileId);
+        if (fileInfo == null || fileInfo.getFilePath() == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        // m3u8 文件路径：与视频文件同目录下的 index.m3u8
+        String videoPath = fileInfo.getFilePath();
+        String m3u8RelativePath = videoPath.substring(0, videoPath.lastIndexOf(".")) + "/" + Constants.M3U8_NAME;
+        String m3u8AbsolutePath = FileUtils.getFullPath(m3u8RelativePath);
+        File m3u8File = new File(m3u8AbsolutePath);
+
+        if (!m3u8File.exists()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        try {
+            String content = new String(java.nio.file.Files.readAllBytes(m3u8File.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+            // 将 m3u8 中的 ts 相对路径替换为 /api/file/ts/{fileId}/xxx.ts
+            String apiPrefix = "/api/file/ts/" + fileId + "/";
+            String[] lines = content.split("\\r?\\n");
+            StringBuilder sb = new StringBuilder();
+            for (String line : lines) {
+                String trimLine = line.trim();
+                if (trimLine.isEmpty() || trimLine.startsWith("#")) {
+                    sb.append(line).append("\n");
+                } else {
+                    // ts 文件名（只取文件名部分）
+                    String tsName = new File(trimLine).getName();
+                    sb.append(apiPrefix).append(tsName).append("\n");
+                }
+            }
+
+            response.setContentType("application/vnd.apple.mpegurl");
+            response.setHeader("Cache-Control", "max-age=86400");
+            response.getWriter().write(sb.toString());
+        } catch (Exception e) {
+            logger.error("读取 m3u8 失败: fileId={}", fileId, e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 获取视频 HLS ts 切片文件
+     */
+    @Override
+    public void getVideo(String fileId, String tsName, HttpServletResponse response) {
+        FileInfo fileInfo = this.fileInfoMapper.selectByFileId(fileId);
+        if (fileInfo == null || fileInfo.getFilePath() == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        String videoPath = fileInfo.getFilePath();
+        String tsDir = videoPath.substring(0, videoPath.lastIndexOf("."));
+        String tsRelativePath = tsDir + "/" + tsName;
+        String tsAbsolutePath = FileUtils.getFullPath(tsRelativePath);
+        File tsFile = new File(tsAbsolutePath);
+
+        if (!tsFile.exists()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        response.setContentType("video/mp2t");
+        response.setHeader("Cache-Control", "max-age=86400");
+
+        try (FileInputStream inputStream = new FileInputStream(tsFile);
+             ServletOutputStream outputStream = response.getOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.flush();
+        } catch (Exception e) {
+            logger.error("读取 ts 切片失败: fileId={}, tsName={}", fileId, tsName, e);
+        }
+    }
+
+    /**
+     * 自动重命名：检查同目录下是否存在同名文件，存在则自动添加序号
+     *
+     * @param userId   用户ID
+     * @param filePid  父目录ID
+     * @param fileName 原始文件名
+     * @return 可用的文件名
+     */
+    private String autoRename(String userId, String filePid, String fileName) {
+        FileInfoQuery query = new FileInfoQuery();
+        query.setUserId(userId);
+        query.setFilePid(filePid);
+        query.setDelFlag(Constants.USING);
+        query.setFolderType(FileFolderTypeEnums.FILE.getType());
+
+        String fileSuffix = StringTools.getFileSuffix(fileName);
+        String nameWithoutSuffix = fileName;
+        if (!fileSuffix.isEmpty()) {
+            nameWithoutSuffix = fileName.substring(0, fileName.lastIndexOf("."));
+        }
+
+        String finalFileName = fileName;
+        query.setFileName(finalFileName);
+        Integer count = this.fileInfoMapper.selectCount(query);
+        if (count == 0) {
+            return fileName;
+        }
+
+        int index = 1;
+        do {
+            if (fileSuffix.isEmpty()) {
+                finalFileName = nameWithoutSuffix + " (" + index + ")";
+            } else {
+                finalFileName = nameWithoutSuffix + " (" + index + ")." + fileSuffix;
+            }
+            query.setFileName(finalFileName);
+            count = this.fileInfoMapper.selectCount(query);
+            index++;
+        } while (count > 0);
+
+        return finalFileName;
+    }
 }

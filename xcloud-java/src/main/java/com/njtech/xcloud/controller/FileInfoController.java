@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -75,5 +77,39 @@ public class FileInfoController extends ABaseController {
 	) {
 		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
 		return getSuccessResponseVO(fileInfoService.uploadFile(webUserVO, fileId, file, fileName, fileMd5, filePid, chunkIndex, chunks));
+	}
+
+
+	/**
+	 * 获取图片并以图片流形式输出
+	 * 路径示例：/api/file/getImage//file/202604/xxx.jpg
+	 * cover 值为 /file/202604/xxx.jpg（数据库中 file_cover 的相对路径）
+	 */
+	@GetMapping("/getImage/**")
+	public void getImage(
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		// 从 URI 中提取 /getImage/ 之后的部分作为 cover 路径
+		String uri = request.getRequestURI();
+		String cover = uri.substring(uri.indexOf("/getImage/") + "/getImage/".length());
+		fileInfoService.getImage(cover, response);
+	}
+
+	/**
+	 * 获取视频 HLS m3u8 索引文件
+	 */
+	@GetMapping("/ts/getVideoInfo/{fileId}")
+	public void getVideoInfo(@PathVariable("fileId") String fileId, HttpServletResponse response) {
+		fileInfoService.getVideoInfo(fileId, response);
+	}
+
+	/**
+	 * 获取视频 HLS ts 切片文件
+	 */
+	@GetMapping("/ts/{fileId}/{tsName}")
+	public void getVideo(@PathVariable("fileId") String fileId,
+						 @PathVariable("tsName") String tsName,
+						 HttpServletResponse response) {
+		fileInfoService.getVideo(fileId, tsName, response);
 	}
 }

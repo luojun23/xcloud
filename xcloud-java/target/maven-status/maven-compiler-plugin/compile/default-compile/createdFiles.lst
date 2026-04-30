@@ -12,6 +12,7 @@ com\njtech\xcloud\entity\enums\DateTimePatternEnum.class
 com\njtech\xcloud\utils\CaptchaUtil.class
 com\njtech\xcloud\controller\ABaseController.class
 com\njtech\xcloud\entity\vo\SessionWebUserVO.class
+com\njtech\xcloud\entity\enums\FileFolderTypeEnums.class
 com\njtech\xcloud\entity\vo\FileInfoVO.class
 com\njtech\xcloud\utils\DateUtil.class
 com\njtech\xcloud\dto\UploadResultDto.class
@@ -20,9 +21,11 @@ com\njtech\xcloud\dto\UserSpaceDto.class
 com\njtech\xcloud\entity\enums\VerifyRegexEnum.class
 com\njtech\xcloud\config\CosConfig.class
 com\njtech\xcloud\entity\query\FileShareQuery.class
+com\njtech\xcloud\utils\FileUtils.class
 com\njtech\xcloud\entity\vo\ResponseVO.class
 com\njtech\xcloud\service\FileInfoService.class
 com\njtech\xcloud\XcloudApplication.class
+com\njtech\xcloud\entity\enums\FileTypeEnums.class
 com\njtech\xcloud\entity\query\FileInfoQuery.class
 com\njtech\xcloud\service\EmailCodeService.class
 com\njtech\xcloud\entity\po\UserInfo.class
@@ -35,6 +38,7 @@ com\njtech\xcloud\service\impl\UserInfoServiceImpl.class
 com\njtech\xcloud\annotation\VerifyParam.class
 com\njtech\xcloud\entity\enums\UploadStatusEnums.class
 com\njtech\xcloud\entity\po\EmailCode.class
+com\njtech\xcloud\utils\ProcessUtils.class
 com\njtech\xcloud\entity\enums\UserStatusEnum.class
 com\njtech\xcloud\utils\IpUtil.class
 com\njtech\xcloud\mappers\EmailCodeMapper.class
@@ -51,7 +55,6 @@ com\njtech\xcloud\service\impl\FileShareServiceImpl.class
 com\njtech\xcloud\mappers\UserInfoMapper.class
 com\njtech\xcloud\service\UserInfoService.class
 com\njtech\xcloud\entity\query\UserInfoQuery.class
-com\njtech\xcloud\utils\COSUtils.class
 com\njtech\xcloud\config\RedisUtils.class
 com\njtech\xcloud\entity\query\EmailCodeQuery.class
 com\njtech\xcloud\config\Appconfig.class

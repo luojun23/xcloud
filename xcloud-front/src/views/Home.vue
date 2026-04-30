@@ -56,7 +56,7 @@
           <span
               :class="['iconfont','icon-'+sub.icon]"
               v-if="sub.icon"
-          ></span>
+          ></span>                                                                                                                                                                            
           <span class="text">{{ sub.name }}</span>
         </div>
         <div class="txt" v-if="currentMenu && currentMenu.tips">{{ currentMenu.tips }}</div>

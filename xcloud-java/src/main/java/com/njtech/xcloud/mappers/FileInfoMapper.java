@@ -24,6 +24,11 @@ public interface FileInfoMapper<T,P> extends BaseMapper<T,P> {
 	 */
 	 T selectByFileIdAndUserId(@Param("fileId") String fileId,@Param("userId") String userId);
 
+	/**
+	 * 根据FileId获取对象
+	 */
+	 T selectByFileId(@Param("fileId") String fileId);
+
 
     Long selectUseSpace(String userId);
 }

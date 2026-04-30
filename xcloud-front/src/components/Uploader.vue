@@ -262,7 +262,6 @@ const uploadFile =async (uid,chunkIndex)=>{
       url:api.upload,
       showLoading:false,
       dataType:"file",
-      timeout: 60 * 1000,
       params:{
         file:chunkFile,
         fileName: file.name,

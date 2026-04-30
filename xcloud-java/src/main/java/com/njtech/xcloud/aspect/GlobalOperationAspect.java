@@ -3,7 +3,6 @@ package com.njtech.xcloud.aspect;
 import com.njtech.xcloud.annotation.GlobalInterceptor;
 import com.njtech.xcloud.annotation.VerifyParam;
 import com.njtech.xcloud.entity.constants.Constants;
-import com.njtech.xcloud.entity.enums.ResponseCodeEnum;
 import com.njtech.xcloud.entity.enums.VerifyRegexEnum;
 import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 import com.njtech.xcloud.exception.BusinessException;
@@ -55,6 +54,10 @@ public class GlobalOperationAspect {
 
             // 2. 参数校验
             if (interceptor.checkParams()) {
+                /**
+                 * method: 目标方法 method可以获取parameterTypes和parameters
+                 * args: 方法参数值
+                 */
                 validateParams(method, point.getArgs());
             }
         } catch (BusinessException e) {
@@ -75,7 +78,7 @@ public class GlobalOperationAspect {
         SessionWebUserVO userInfo = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
 
         if (userInfo == null) {
-            throw new BusinessException(ResponseCodeEnum.CODE_901);
+            throw new BusinessException("用户未登录或登录已过期");
         }
     }
 
@@ -128,7 +131,7 @@ public class GlobalOperationAspect {
         // 必填校验
         if (verifyParam.required()) {
             if (value == null || (value instanceof String && ((String) value).trim().isEmpty())) {
-                throw new BusinessException(ResponseCodeEnum.CODE_600);
+                throw new BusinessException(fieldName + "不能为空");
             }
         }
 
@@ -146,12 +149,12 @@ public class GlobalOperationAspect {
 
         // 最小长度校验
         if (verifyParam.min() != -1 && strValue.length() < verifyParam.min()) {
-            throw new BusinessException(ResponseCodeEnum.CODE_600);
+            throw new BusinessException(fieldName + "长度不能小于" + verifyParam.min());
         }
 
         // 最大长度校验
         if (verifyParam.max() != -1 && strValue.length() > verifyParam.max()) {
-            throw new BusinessException(ResponseCodeEnum.CODE_600);
+            throw new BusinessException(fieldName + "长度不能大于" + verifyParam.max());
         }
 
         // 正则校验

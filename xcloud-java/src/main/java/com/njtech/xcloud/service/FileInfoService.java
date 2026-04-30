@@ -95,4 +95,16 @@ public interface FileInfoService {
 	 * 异步合并分片
 	 */
 	void mergeChunks(String userId, String fileId, String fileName, Integer chunks);
+
+	void getImage(String cover, HttpServletResponse response);
+
+	/**
+	 * 获取视频 HLS m3u8 索引文件
+	 */
+	void getVideoInfo(String fileId, HttpServletResponse response);
+
+	/**
+	 * 获取视频 HLS ts 切片文件
+	 */
+	void getVideo(String fileId, String tsName, HttpServletResponse response);
 }

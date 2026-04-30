@@ -32,6 +32,18 @@ public class Constants {
     public static final Integer TRANSFER_SUCCESS = 2;
 
     /**
+     * 视频切片文件
+     */
+    public static final String TS_NAME = "index.ts";
+    public static final String M3U8_NAME = "index.m3u8";
+
+    /**
+     * 缩略图尺寸
+     */
+    public static final Integer THUMB_WIDTH = 150;
+    public static final Integer THUMB_HEIGHT = 150;
+
+    /**
      * COS文件目录
      */
     public static final String FILE_FOLDER_FILE = "/file/";

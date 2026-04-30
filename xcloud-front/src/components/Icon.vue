@@ -59,6 +59,7 @@ const getImage=()=>{
 </script>
 <style>
 .icon{
+  cursor: pointer;
   text-align: center;
   display: inline-block;
   border-radius: 3px;
