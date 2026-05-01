@@ -24,7 +24,7 @@
         <div class="file-item"
              @mouseenter="showOp(row)"
              @mouseleave="cancelShowOp(row)">
-          <template v-if="(row.fileType==3||row.fileType==1)&&row.status!=0">
+          <template v-if="(row.fileType==1||row.fileType==3)&&row.status==2">
             <Icon :cover="row.fileCover" :width="32"></Icon>
           </template>
           <template v-else>

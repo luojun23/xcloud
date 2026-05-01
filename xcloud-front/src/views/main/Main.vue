@@ -144,7 +144,7 @@ import ShareFile from "@/views/main/ShareFile.vue";
 
 const {proxy} = getCurrentInstance();
 //将子组件方法传给父组件
-const emit = defineEmits("addFile");
+const emit = defineEmits(["addFile", "refreshSpace"]);
 //添加文件
 const addFile = (fileData) => {
   emit("addFile", {file: fileData.file, filePid:currentFolder.value.fileId})
@@ -352,6 +352,7 @@ const delFileBatch = () => {
           return;
         }
         loadDataList();
+        emit("refreshSpace");
       }
   )
 }
@@ -369,6 +370,8 @@ const delFile = (row) => {
           return;
         }
         loadDataList();
+        emit("refreshSpace");
+        
       }
   )
 }
@@ -386,7 +389,7 @@ const moveFileBatch = () => {
   folderSelectRef.value.showFolderDialog(selectFileList.value)
 }
 const folderSelectDone = async (folderId) => {
-  if (currentFolder.value.fileId == folderId) {
+  if (currentFolder.value.fileId == folderId) { 
     proxy.Message.warning("文件正在当前目录,无需移动")
     return
   }

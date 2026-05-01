@@ -27,6 +27,7 @@ com\njtech\xcloud\service\FileInfoService.class
 com\njtech\xcloud\XcloudApplication.class
 com\njtech\xcloud\entity\enums\FileTypeEnums.class
 com\njtech\xcloud\entity\query\FileInfoQuery.class
+com\njtech\xcloud\entity\vo\FileShareVO.class
 com\njtech\xcloud\service\EmailCodeService.class
 com\njtech\xcloud\entity\po\UserInfo.class
 com\njtech\xcloud\utils\DateUtil$1.class
@@ -43,7 +44,9 @@ com\njtech\xcloud\entity\enums\UserStatusEnum.class
 com\njtech\xcloud\utils\IpUtil.class
 com\njtech\xcloud\mappers\EmailCodeMapper.class
 com\njtech\xcloud\entity\query\BaseParam.class
+com\njtech\xcloud\controller\RecycleController.class
 com\njtech\xcloud\service\impl\EmailCodeServiceImpl.class
+com\njtech\xcloud\dto\DownloadFileDto.class
 com\njtech\xcloud\mappers\BaseMapper.class
 com\njtech\xcloud\entity\po\FileShare.class
 com\njtech\xcloud\exception\BusinessException.class

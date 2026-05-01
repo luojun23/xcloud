@@ -59,7 +59,7 @@ const loadAllFolder =async ()=>{
       url:api.loadAllFolder,
       params:{
         filePid:filePid.value,
-        currentFileIds:currentFileIds.value
+        currentFileIds:Array.isArray(currentFileIds.value)?currentFileIds.value.join(","):currentFileIds.value
       }
     })
   if (!result){
@@ -71,9 +71,15 @@ const close = ()=>{
   dialogConfig.value.show = false;
 }
 
-const showFolderDialog = (currentFolder)=>{
+const showFolderDialog = (fileIds)=>{
     dialogConfig.value.show = true
-    currentFileIds.value = currentFolder
+    currentFileIds.value = fileIds
+    // 重置导航栏到初始状态
+    if (navigationRef.value) {
+      navigationRef.value.init()
+    }
+    filePid.value = "0"
+    currentFolder.value = { fileId: "0" }
     loadAllFolder()
 }
 defineExpose({showFolderDialog,close})
@@ -90,8 +96,8 @@ const folderSelect = ()=>{
 const navigationRef = ref()
 const navChange = (data) => {
   const { curFolder} = data;
-  currentFolder.value = curFolder;
-  filePid.value = curFolder.fileId;
+  currentFolder.value = { fileId: curFolder };
+  filePid.value = curFolder;
   loadAllFolder()
 }
 </script>

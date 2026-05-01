@@ -129,6 +129,31 @@ public interface FileInfoService {
 	void changeFileFolder(String userId, String fileIds, String filePid);
 
 	/**
+	 * 创建下载链接（生成临时下载码）
+	 */
+	String createDownloadUrl(String userId, String fileId);
+
+	/**
+	 * 文件下载
+	 */
+	void download(String downloadCode, HttpServletResponse response);
+
+	/**
+	 * 删除文件（移入回收站）
+	 */
+	void delFile(String userId, String fileIds);
+
+	/**
+	 * 还原文件（从回收站恢复）
+	 */
+	void recoverFile(String userId, String fileIds);
+
+	/**
+	 * 彻底删除文件（从回收站删除）
+	 */
+	void delFileRecycle(String userId, String fileIds);
+
+	/**
 	 * 获取视频 HLS m3u8 索引文件
 	 */
 	void getVideoInfo(String fileId, HttpServletResponse response);

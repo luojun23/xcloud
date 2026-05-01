@@ -46,6 +46,7 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\impl\FileShareServiceImpl.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\po\FileInfo.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\po\UserInfo.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\dto\DownloadFileDto.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\dto\UploadResultDto.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\config\Appconfig.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\UserStatusEnum.java
@@ -54,8 +55,10 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\query\EmailCodeQuery.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\FileTypeEnums.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\FileUtils.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\FileShareVO.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\ABaseController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\annotation\GlobalInterceptor.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\RecycleController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\FileFolderTypeEnums.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\config\RedisComponent.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\SessionWebUserVO.java

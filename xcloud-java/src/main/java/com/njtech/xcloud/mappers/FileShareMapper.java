@@ -2,6 +2,8 @@ package com.njtech.xcloud.mappers;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  *  数据库操作接口
  */
@@ -24,5 +26,9 @@ public interface FileShareMapper<T,P> extends BaseMapper<T,P> {
 	 */
 	 T selectByShareId(@Param("shareId") String shareId);
 
+	/**
+	 * 批量根据ShareId删除
+	 */
+	 Integer deleteBatchByShareId(@Param("shareIdList") List<String> shareIdList, @Param("userId") String userId);
 
 }

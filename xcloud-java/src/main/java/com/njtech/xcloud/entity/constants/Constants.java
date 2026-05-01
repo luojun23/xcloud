@@ -14,6 +14,7 @@ public class Constants {
     public static final String REDIS_KEY_USER_SPACE_USE = "redis_key_user_space_use";
     public static final String REDIS_KEY_TEMP_SIZE = "redis_key_temp_size:";
 
+    public static final Integer RECYCLE = 1;
     public static final Integer USING = 2;
 
     public static final long MB = 1024 * 1024L;
@@ -23,6 +24,10 @@ public class Constants {
     public static final int REDIS_KEY_ONE_HOUR = 1 * 60 * 60;
 
     public static final int REDIS_KEY_ONE_DAY = 24 * 60 * 60;
+
+    public static final int REDIS_KEY_EXPIRES_FIVE_MIN = 5 * 60;
+
+    public static final String REDIS_KEY_DOWNLOAD = "redis_key_download:";
 
     /**
      * 文件状态 0:转码中 1:转码失败 2:转码成功

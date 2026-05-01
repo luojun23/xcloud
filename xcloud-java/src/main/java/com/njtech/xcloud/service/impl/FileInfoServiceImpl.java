@@ -2,6 +2,7 @@ package com.njtech.xcloud.service.impl;
 
 import com.njtech.xcloud.config.RedisComponent;
 import com.njtech.xcloud.config.RedisUtils;
+import com.njtech.xcloud.dto.DownloadFileDto;
 import com.njtech.xcloud.dto.UploadResultDto;
 import com.njtech.xcloud.entity.constants.Constants;
 import com.njtech.xcloud.entity.enums.*;
@@ -883,7 +884,6 @@ public class FileInfoServiceImpl implements FileInfoService {
         query.setUserId(userId);
         query.setFilePid(filePid);
         query.setDelFlag(Constants.USING);
-        query.setFolderType(FileFolderTypeEnums.FILE.getType());
 
         String fileSuffix = StringTools.getFileSuffix(fileName);
         String nameWithoutSuffix = fileName;
@@ -911,5 +911,242 @@ public class FileInfoServiceImpl implements FileInfoService {
         } while (count > 0);
 
         return finalFileName;
+    }
+
+    /**
+     * 创建下载链接（生成临时下载码）
+     */
+    @Override
+    public String createDownloadUrl(String userId, String fileId) {
+        FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+        if (fileInfo == null) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        if (fileInfo.getFolderType() == 1) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        String downloadCode = StringTools.getRandomString(30);
+        DownloadFileDto downloadFileDto = new DownloadFileDto();
+        downloadFileDto.setDownloadCode(downloadCode);
+        downloadFileDto.setFileName(fileInfo.getFileName());
+        downloadFileDto.setFilePath(fileInfo.getFilePath());
+        redisUtils.set(Constants.REDIS_KEY_DOWNLOAD + downloadCode, downloadFileDto, Constants.REDIS_KEY_EXPIRES_FIVE_MIN);
+        return downloadCode;
+    }
+
+    /**
+     * 文件下载
+     */
+    @Override
+    public void download(String downloadCode, HttpServletResponse response) {
+        DownloadFileDto downloadFileDto = (DownloadFileDto) redisUtils.get(Constants.REDIS_KEY_DOWNLOAD + downloadCode);
+        if (downloadFileDto == null) {
+            throw new BusinessException("下载链接已失效");
+        }
+        String filePath = FileUtils.getFullPath(downloadFileDto.getFilePath());
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new BusinessException("文件不存在");
+        }
+        String fileName = downloadFileDto.getFileName();
+        response.setContentType("application/octet-stream");
+        try {
+            response.setHeader("Content-Disposition", "attachment; filename=" + new String(fileName.getBytes("UTF-8"), "ISO8859-1"));
+        } catch (Exception e) {
+            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+        }
+        response.setHeader("Content-Length", String.valueOf(file.length()));
+        try (FileInputStream fis = new FileInputStream(file);
+             OutputStream out = response.getOutputStream()) {
+            byte[] buffer = new byte[4096];
+            int len;
+            while ((len = fis.read(buffer)) != -1) {
+                out.write(buffer, 0, len);
+            }
+            out.flush();
+        } catch (Exception e) {
+            logger.error("下载文件失败: code={}, path={}", downloadCode, filePath, e);
+        }
+    }
+
+    /**
+     * 删除文件（移入回收站）
+     */
+    @Override
+    public void delFile(String userId, String fileIds) {
+        if (StringTools.isEmpty(fileIds)) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        String[] fileIdArray = fileIds.split(",");
+        long totalSize = 0;
+        for (String fileId : fileIdArray) {
+            if (StringTools.isEmpty(fileId)) {
+                continue;
+            }
+            FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+            if (fileInfo == null) {
+                continue;
+            }
+            // 收集该文件/文件夹及其所有子项
+            List<String> allFileIds = new ArrayList<>();
+            collectAllFileIds(userId, fileId, allFileIds, Constants.USING);
+            for (String id : allFileIds) {
+                FileInfo item = this.fileInfoMapper.selectByFileIdAndUserId(id, userId);
+                if (item != null && item.getDelFlag() != null && item.getDelFlag().equals(Constants.USING)) {
+                    if (item.getFileSize() != null && item.getFolderType() != null && item.getFolderType() == 0) {
+                        totalSize += item.getFileSize();
+                    }
+                }
+            }
+            // 批量更新为回收站状态
+            for (String id : allFileIds) {
+                FileInfo updateInfo = new FileInfo();
+                updateInfo.setDelFlag(1);
+                updateInfo.setRecoveryTime(new Date());
+                updateInfo.setLastUpdateTime(new Date());
+                this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, id, userId);
+            }
+        }
+        // 更新用户已用空间
+        if (totalSize > 0) {
+            redisComponent.updateUserSpace(userId, -totalSize);
+        }
+    }
+
+    /**
+     * 还原文件（从回收站恢复）
+     */
+    @Override
+    public void recoverFile(String userId, String fileIds) {
+        if (StringTools.isEmpty(fileIds)) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        String[] fileIdArray = fileIds.split(",");
+        long totalSize = 0;
+        for (String fileId : fileIdArray) {
+            if (StringTools.isEmpty(fileId)) {
+                continue;
+            }
+            FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+            if (fileInfo == null) {
+                continue;
+            }
+            // 收集该文件/文件夹及其所有子项（回收站中）
+            List<String> allFileIds = new ArrayList<>();
+            collectAllFileIds(userId, fileId, allFileIds, Constants.RECYCLE);
+            for (String id : allFileIds) {
+                FileInfo item = this.fileInfoMapper.selectByFileIdAndUserId(id, userId);
+                if (item != null && item.getDelFlag() != null && item.getDelFlag().equals(Constants.RECYCLE)) {
+                    if (item.getFileSize() != null && item.getFolderType() != null && item.getFolderType() == 0) {
+                        totalSize += item.getFileSize();
+                    }
+                    // 检查目标目录下是否有同名文件/文件夹，有则自动重命名
+                    String newFileName = autoRename(userId, item.getFilePid(), item.getFileName());
+                    FileInfo updateInfo = new FileInfo();
+                    updateInfo.setDelFlag(Constants.USING);
+                    updateInfo.setRecoveryTime(null);
+                    updateInfo.setLastUpdateTime(new Date());
+                    if (!newFileName.equals(item.getFileName())) {
+                        updateInfo.setFileName(newFileName);
+                    }
+                    this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, id, userId);
+                }
+            }
+        }
+        // 恢复用户已用空间
+        if (totalSize > 0) {
+            redisComponent.updateUserSpace(userId, totalSize);
+        }
+    }
+
+    /**
+     * 彻底删除文件（从回收站删除）
+     */
+    @Override
+    public void delFileRecycle(String userId, String fileIds) {
+        if (StringTools.isEmpty(fileIds)) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+        String[] fileIdArray = fileIds.split(",");
+        long totalSize = 0;
+        for (String fileId : fileIdArray) {
+            if (StringTools.isEmpty(fileId)) {
+                continue;
+            }
+            FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+            if (fileInfo == null) {
+                continue;
+            }
+            // 收集该文件/文件夹及其所有子项（回收站中）
+            List<String> allFileIds = new ArrayList<>();
+            collectAllFileIds(userId, fileId, allFileIds, Constants.RECYCLE);
+            for (String id : allFileIds) {
+                FileInfo item = this.fileInfoMapper.selectByFileIdAndUserId(id, userId);
+                if (item != null) {
+                    // 累加文件大小（只算实际文件，不算文件夹）
+                    if (item.getFileSize() != null && item.getFolderType() != null && item.getFolderType() == 0) {
+                        totalSize += item.getFileSize();
+                    }
+                    // 删除物理文件
+                    if (!StringTools.isEmpty(item.getFilePath())) {
+                        String fullPath = FileUtils.getFullPath(item.getFilePath());
+                        File physicalFile = new File(fullPath);
+                        if (physicalFile.exists()) {
+                            physicalFile.delete();
+                        }
+                        // 删除视频切片目录（如果是视频）
+                        if (item.getFileCategory() != null && item.getFileCategory() == FileCategoryEnum.VIDEO.getCategory()) {
+                            String videoDir = fullPath.substring(0, fullPath.lastIndexOf("."));
+                            File dir = new File(videoDir);
+                            if (dir.exists()) {
+                                deleteDirectory(dir);
+                            }
+                        }
+                    }
+                    // 删除数据库记录
+                    this.fileInfoMapper.deleteByFileIdAndUserId(id, userId);
+                }
+            }
+        }
+        // 更新用户已用空间（彻底删除后释放空间）
+        if (totalSize > 0) {
+            redisComponent.updateUserSpace(userId, -totalSize);
+        }
+    }
+
+    /**
+     * 递归删除目录
+     */
+    private void deleteDirectory(File dir) {
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file);
+                } else {
+                    file.delete();
+                }
+            }
+        }
+        dir.delete();
+    }
+
+    /**
+     * 递归收集文件夹下所有文件ID
+     */
+    private void collectAllFileIds(String userId, String fileId, List<String> result, Integer delFlag) {
+        result.add(fileId);
+        FileInfoQuery query = new FileInfoQuery();
+        query.setFilePid(fileId);
+        query.setUserId(userId);
+        if (delFlag != null) {
+            query.setDelFlag(delFlag);
+        }
+        List<FileInfo> children = this.fileInfoMapper.selectList(query);
+        if (children != null) {
+            for (FileInfo child : children) {
+                collectAllFileIds(userId, child.getFileId(), result, delFlag);
+            }
+        }
     }
 }

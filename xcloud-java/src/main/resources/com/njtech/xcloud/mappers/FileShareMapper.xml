@@ -384,6 +384,15 @@
 		delete from file_share where share_id=#{shareId}
 	</delete>
 
+	<!-- 批量根据ShareId删除-->
+	<delete id="deleteBatchByShareId">
+		delete from file_share where user_id=#{userId}
+		and share_id in
+		<foreach collection="shareIdList" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
 	<!-- 根据PrimaryKey获取对象-->
 	<select id="selectByShareId" resultMap="base_result_map" >
 		select <include refid="base_column_list" /> from file_share where share_id=#{shareId}

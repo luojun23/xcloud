@@ -11,11 +11,12 @@
     <PreviewDoc :url="url" v-if="fileInfo.fileType==5"></PreviewDoc>
     <PreviewExcel :url="url" v-if="fileInfo.fileType==6"></PreviewExcel>
     <PreviewPdf :url="url" v-if="fileInfo.fileType==4"></PreviewPdf>
+    <PreviewPpt :url="url" v-if="fileInfo.fileType==11||(fileInfo.fileName&&fileInfo.fileName.toLowerCase().endsWith('.pptx'))"></PreviewPpt>
     <PreviewTxt :url="url" v-if="fileInfo.fileType==7||fileInfo.fileType==8"></PreviewTxt>
     <PreviewMusic :url="url" v-if="fileInfo.fileCategory==2" :file-name="fileInfo.fileName"></PreviewMusic>
     <PreviewDownload :createDownloadUrl="createDownloadUrl"
                      :downloadUrl="downloadUrl"
-                     v-if="fileInfo.fileCategory==5&&fileInfo.fileType!=8"
+                     v-if="fileInfo.fileCategory==5&&fileInfo.fileType!=8&&!(fileInfo.fileName&&fileInfo.fileName.toLowerCase().endsWith('.pptx'))"
                      :fileInfo="fileInfo"
     ></PreviewDownload>
   </Window>
@@ -33,6 +34,7 @@ import PreviewPdf from "@/components/preview/PreviewPdf.vue";
 import PreviewTxt from "@/components/preview/PreviewTxt.vue";
 import PreviewMusic from "@/components/preview/PreviewMusic.vue";
 import PreviewDownload from "@/components/preview/PreviewDownload.vue";
+import PreviewPpt from "@/components/preview/PreviewPpt.vue";
 
 const FILE_URL_REF = {
   0: {

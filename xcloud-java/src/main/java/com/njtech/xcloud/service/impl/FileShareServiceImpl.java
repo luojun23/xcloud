@@ -5,15 +5,24 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.njtech.xcloud.entity.enums.PageSize;
+import com.njtech.xcloud.entity.enums.ResponseCodeEnum;
+import com.njtech.xcloud.entity.po.FileInfo;
+import com.njtech.xcloud.entity.query.FileInfoQuery;
 import com.njtech.xcloud.entity.query.FileShareQuery;
 import com.njtech.xcloud.entity.po.FileShare;
 import com.njtech.xcloud.entity.vo.PaginationResultVO;
 import com.njtech.xcloud.entity.query.SimplePage;
+import com.njtech.xcloud.exception.BusinessException;
+import com.njtech.xcloud.mappers.FileInfoMapper;
 import com.njtech.xcloud.mappers.FileShareMapper;
 import com.njtech.xcloud.service.FileShareService;
 import com.njtech.xcloud.utils.StringTools;
+
+import java.util.Calendar;
+import java.util.Date;
 
 
 /**
@@ -24,6 +33,9 @@ public class FileShareServiceImpl implements FileShareService {
 
 	@Resource
 	private FileShareMapper<FileShare, FileShareQuery> fileShareMapper;
+
+	@Resource
+	private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 
 	/**
 	 * 根据条件查询列表
@@ -126,5 +138,74 @@ public class FileShareServiceImpl implements FileShareService {
 	@Override
 	public Integer deleteFileShareByShareId(String shareId) {
 		return this.fileShareMapper.deleteByShareId(shareId);
+	}
+
+	/**
+	 * 创建分享
+	 */
+	@Override
+	public FileShare shareFile(String userId, String fileId, Integer validType, Integer codeType, String code) {
+		// 校验文件是否存在且属于当前用户
+		FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+		if (fileInfo == null) {
+			throw new BusinessException(ResponseCodeEnum.CODE_600);
+		}
+
+		FileShare fileShare = new FileShare();
+		fileShare.setShareId(StringTools.getRandomString(20));
+		fileShare.setFileId(fileId);
+		fileShare.setUserId(userId);
+		fileShare.setValidType(validType);
+		fileShare.setShareTime(new Date());
+		fileShare.setShowCount(0);
+
+		// 计算失效时间
+		if (validType != null && validType != 3) {
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(new Date());
+			switch (validType) {
+				case 0:
+					calendar.add(Calendar.DAY_OF_YEAR, 1);
+					break;
+				case 1:
+					calendar.add(Calendar.DAY_OF_YEAR, 7);
+					break;
+				case 2:
+					calendar.add(Calendar.DAY_OF_YEAR, 10);
+					break;
+			}
+			fileShare.setExpireTime(calendar.getTime());
+		}
+
+		// 提取码
+		if (codeType != null && codeType == 1) {
+			fileShare.setCode(StringTools.getRandomString(5));
+		} else {
+			fileShare.setCode(code);
+		}
+
+		this.fileShareMapper.insert(fileShare);
+		return fileShare;
+	}
+
+	/**
+	 * 取消分享
+	 */
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void cancelShare(String userId, String shareIds) {
+		if (StringTools.isEmpty(shareIds)) {
+			throw new BusinessException(ResponseCodeEnum.CODE_600);
+		}
+		String[] shareIdArray = shareIds.split(",");
+		List<String> shareIdList = new java.util.ArrayList<>();
+		for (String shareId : shareIdArray) {
+			if (!StringTools.isEmpty(shareId)) {
+				shareIdList.add(shareId);
+			}
+		}
+		if (!shareIdList.isEmpty()) {
+			this.fileShareMapper.deleteBatchByShareId(shareIdList, userId);
+		}
 	}
 }

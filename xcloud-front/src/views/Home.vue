@@ -85,6 +85,7 @@
       <router-view v-slot="{ Component }">
         <component :is="Component"
                    @addFile="addFile"
+                   @refreshSpace="getUseSpace"
                    ref="routerViewRef"
         ></component>
       </router-view>

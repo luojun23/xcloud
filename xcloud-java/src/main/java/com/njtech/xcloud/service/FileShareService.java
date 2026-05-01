@@ -69,4 +69,14 @@ public interface FileShareService {
 	 */
 	Integer deleteFileShareByShareId(String shareId);
 
+	/**
+	 * 创建分享
+	 */
+	FileShare shareFile(String userId, String fileId, Integer validType, Integer codeType, String code);
+
+	/**
+	 * 取消分享
+	 */
+	void cancelShare(String userId, String shareIds);
+
 }

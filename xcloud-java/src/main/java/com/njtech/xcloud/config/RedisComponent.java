@@ -6,7 +6,9 @@ import com.njtech.xcloud.entity.enums.ResponseCodeEnum;
 import com.njtech.xcloud.entity.po.FileInfo;
 import com.njtech.xcloud.entity.query.FileInfoQuery;
 import com.njtech.xcloud.exception.BusinessException;
+import com.njtech.xcloud.entity.po.UserInfo;
 import com.njtech.xcloud.mappers.FileInfoMapper;
+import com.njtech.xcloud.mappers.UserInfoMapper;
 
 import javax.annotation.Resource;
 
@@ -23,6 +25,9 @@ public class RedisComponent {
 
     @Resource
     private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
+
+    @Resource
+    private UserInfoMapper<UserInfo, ?> userInfoMapper;
 
     /**
      * 获取用户使用的空间
@@ -104,7 +109,16 @@ public class RedisComponent {
      */
     public void updateUserSpace(String userId, Long totalSize) {
         UserSpaceDto spaceDto = getUserSpaceUse(userId);
-        spaceDto.setUseSpace(spaceDto.getUseSpace() + totalSize);
+        Long newUseSpace = spaceDto.getUseSpace() + totalSize;
+        if (newUseSpace < 0) {
+            newUseSpace = 0L;
+        }
+        spaceDto.setUseSpace(newUseSpace);
         redisUtils.set(Constants.REDIS_KEY_USER_SPACE_USE + userId, spaceDto, Constants.REDIS_KEY_EXPIRES_DAY);
+
+        // 同步更新数据库
+        UserInfo updateInfo = new UserInfo();
+        updateInfo.setUseSpace(newUseSpace);
+        userInfoMapper.updateByUserId(updateInfo, userId);
     }
 }

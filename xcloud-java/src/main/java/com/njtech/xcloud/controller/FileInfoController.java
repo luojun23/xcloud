@@ -183,4 +183,28 @@ public class FileInfoController extends ABaseController {
 		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
 		fileInfoService.getFile(webUserVO.getUserId(), fileId, response);
 	}
+
+	@RequestMapping("/createDownloadUrl/{fileId}")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO createDownloadUrl(HttpSession session,
+										@PathVariable("fileId") String fileId) {
+		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+		String downloadCode = fileInfoService.createDownloadUrl(webUserVO.getUserId(), fileId);
+		return getSuccessResponseVO(downloadCode);
+	}
+
+	@RequestMapping("/download/{downloadCode}")
+	public void download(@PathVariable("downloadCode") String downloadCode,
+						 HttpServletResponse response) {
+		fileInfoService.download(downloadCode, response);
+	}
+
+	@RequestMapping("/delFile")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO delFile(HttpSession session,
+							  @VerifyParam(required = true) String fileIds) {
+		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+		fileInfoService.delFile(webUserVO.getUserId(), fileIds);
+		return getSuccessResponseVO(null);
+	}
 }

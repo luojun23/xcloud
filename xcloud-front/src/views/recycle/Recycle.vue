@@ -20,7 +20,7 @@
         <div class="file-item"
              @mouseenter="showOp(row)"
              @mouseleave="cancelShowOp(row)">
-          <template v-if="(row.fileType==3||row.fileType==1)&&row.status!=0">
+          <template v-if="(row.fileType==1||row.fileType==3)&&row.status==2">
             <Icon :cover="row.fileCover" :width="32"></Icon>
           </template>
           <template v-else>
@@ -44,9 +44,10 @@
 </template>
 
 <script setup>
-import {getCurrentInstance, nextTick, ref, defineEmits} from "vue";
+import {getCurrentInstance, nextTick, ref} from "vue";
 import Icon from "@/components/Icon.vue";
 const {proxy} = getCurrentInstance();
+const emit = defineEmits(["refreshSpace"]);
 const api = {
   loadDataList:"/recycle/loadRecycleList",
   recoverFile:"/recycle/recoverFile",
@@ -127,6 +128,7 @@ const revert=(row)=>{
     }
     proxy.Message.success("还原成功")
     loadDataList()
+    emit("refreshSpace")
   })
 }
 
@@ -144,6 +146,7 @@ const revertBatch=()=>{
     }
     proxy.Message.success("还原成功")
     loadDataList()
+    emit("refreshSpace")
   })
 }
 
@@ -175,6 +178,7 @@ const cancelShareDone = () => {
     }
     proxy.Message.success("删除成功")
     loadDataList()
+    emit("refreshSpace")
   })
 }
 </script>
