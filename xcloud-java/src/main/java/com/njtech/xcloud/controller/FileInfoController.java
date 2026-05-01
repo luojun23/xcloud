@@ -139,4 +139,48 @@ public class FileInfoController extends ABaseController {
 		List<FileInfo> folderList = fileInfoService.getFolderInfo(webUserVO.getUserId(), path);
 		return getSuccessResponseVO(folderList);
 	}
+
+	@PostMapping("/loadAllFolder")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO loadAllFolder(HttpSession session,
+									@VerifyParam(required = true) String filePid,
+									String currentFileIds) {
+		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+		List<FileInfo> folderList = fileInfoService.loadAllFolder(webUserVO.getUserId(), filePid, currentFileIds);
+		return getSuccessResponseVO(folderList);
+	}
+
+	@PostMapping("/changeFileFolder")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO changeFileFolder(HttpSession session,
+									   @VerifyParam(required = true) String fileIds,
+									   @VerifyParam(required = true) String filePid) {
+		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+		fileInfoService.changeFileFolder(webUserVO.getUserId(), fileIds, filePid);
+		return getSuccessResponseVO(null);
+	}
+
+
+	@PostMapping("/rename")
+	@GlobalInterceptor(checkParams = true)
+	public ResponseVO rename(HttpSession session,
+							 @VerifyParam(required = true) String fileName,
+							 @VerifyParam(required = true) String filePid,
+							 @VerifyParam(required = true) String fileId) {
+		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+		FileInfo fileInfo = fileInfoService.rename(webUserVO.getUserId(), fileId, filePid, fileName);
+		FileInfoVO fileInfoVO = new FileInfoVO();
+		BeanUtils.copyProperties(fileInfo, fileInfoVO);
+		return getSuccessResponseVO(fileInfoVO);
+	}
+
+
+	@RequestMapping("/getFile/{fileId}")
+	@GlobalInterceptor(checkParams = true)
+	public void getFile(HttpSession session,
+						@PathVariable("fileId") String fileId,
+						HttpServletResponse response) {
+		SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+		fileInfoService.getFile(webUserVO.getUserId(), fileId, response);
+	}
 }

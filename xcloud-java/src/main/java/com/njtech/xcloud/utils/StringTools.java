@@ -85,4 +85,15 @@ public class StringTools {
         }
         return fileName.substring(index + 1);
     }
+
+    public static String getFileSuffixWithPoint(String fileName) {
+        if (StringTools.isEmpty(fileName)) {
+            return "";
+        }
+        int index = fileName.lastIndexOf(".");
+        if (index == -1 || index == fileName.length() - 1) {
+            return "";
+        }
+        return fileName.substring(index);
+    }
 }

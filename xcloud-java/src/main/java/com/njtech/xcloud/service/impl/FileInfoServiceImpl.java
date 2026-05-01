@@ -4,10 +4,7 @@ import com.njtech.xcloud.config.RedisComponent;
 import com.njtech.xcloud.config.RedisUtils;
 import com.njtech.xcloud.dto.UploadResultDto;
 import com.njtech.xcloud.entity.constants.Constants;
-import com.njtech.xcloud.entity.enums.FileFolderTypeEnums;
-import com.njtech.xcloud.entity.enums.FileTypeEnums;
-import com.njtech.xcloud.entity.enums.PageSize;
-import com.njtech.xcloud.entity.enums.UploadStatusEnums;
+import com.njtech.xcloud.entity.enums.*;
 import com.njtech.xcloud.entity.po.FileInfo;
 import com.njtech.xcloud.entity.query.FileInfoQuery;
 import com.njtech.xcloud.entity.query.SimplePage;
@@ -35,9 +32,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 
 /**
@@ -318,6 +319,213 @@ public class FileInfoServiceImpl implements FileInfoService {
             }
         }
         return folderList;
+    }
+
+    /**
+     * 获取文件夹列表（移动文件时选择目标目录）
+     */
+    @Override
+    public List<FileInfo> loadAllFolder(String userId, String filePid, String currentFileIds) {
+        FileInfoQuery query = new FileInfoQuery();
+        query.setFilePid(filePid);
+        query.setUserId(userId);
+        query.setFolderType(FileFolderTypeEnums.FOLDER.getType());
+        query.setDelFlag(Constants.USING);
+        query.setOrderBy("create_time desc");
+        List<FileInfo> folderList = this.fileInfoMapper.selectList(query);
+
+        // 排除正在移动的文件/文件夹本身
+        if (!StringTools.isEmpty(currentFileIds)) {
+            Set<String> excludeIds = new HashSet<>(Arrays.asList(currentFileIds.split(",")));
+            folderList = folderList.stream()
+                    .filter(f -> !excludeIds.contains(f.getFileId()))
+                    .collect(Collectors.toList());
+        }
+
+        return folderList;
+    }
+
+    /**
+     * 移动文件/文件夹到目标目录
+     */
+    @Override
+    public void changeFileFolder(String userId, String fileIds, String filePid) {
+        if (StringTools.isEmpty(fileIds) || StringTools.isEmpty(filePid)) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+
+        // 校验目标文件夹是否存在（filePid 为 "0" 表示根目录，不需要校验）
+        if (!"0".equals(filePid)) {
+            FileInfo targetFolder = this.fileInfoMapper.selectByFileIdAndUserId(filePid, userId);
+            if (targetFolder == null || !FileFolderTypeEnums.FOLDER.getType().equals(targetFolder.getFolderType())) {
+                throw new BusinessException("目标文件夹不存在");
+            }
+        }
+
+        String[] fileIdArray = fileIds.split(",");
+        for (String fileId : fileIdArray) {
+            if (StringTools.isEmpty(fileId)) {
+                continue;
+            }
+
+            FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+            if (fileInfo == null) {
+                continue;
+            }
+
+            // 检查目标目录下是否有同名文件/文件夹
+            FileInfoQuery query = new FileInfoQuery();
+            query.setFilePid(filePid);
+            query.setFileName(fileInfo.getFileName());
+            query.setUserId(userId);
+            query.setDelFlag(Constants.USING);
+            List<FileInfo> list = this.fileInfoMapper.selectList(query);
+            if (list != null && !list.isEmpty()) {
+                boolean hasOther = list.stream().anyMatch(f -> !f.getFileId().equals(fileId));
+                if (hasOther) {
+                    throw new BusinessException("目标目录下已存在同名文件: " + fileInfo.getFileName());
+                }
+            }
+
+            FileInfo updateInfo = new FileInfo();
+            updateInfo.setFilePid(filePid);
+            updateInfo.setLastUpdateTime(new Date());
+            this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, fileId, userId);
+        }
+    }
+
+    /**
+     * 重命名文件/文件夹
+     */
+    @Override
+    public FileInfo rename(String userId, String fileId, String filePid, String fileName) {
+        FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+        if (fileInfo == null) {
+            throw new BusinessException("文件不存在");
+        }
+
+        // 同目录下检查同名（排除自己）
+        FileInfoQuery query = new FileInfoQuery();
+        query.setFilePid(filePid);
+        query.setFileName(fileName);
+        query.setUserId(userId);
+        query.setDelFlag(Constants.USING);
+        List<FileInfo> list = this.fileInfoMapper.selectList(query);
+        if (list != null && !list.isEmpty()) {
+            boolean hasOther = list.stream().anyMatch(f -> !f.getFileId().equals(fileId));
+            if (hasOther) {
+                throw new BusinessException("文件名已存在");
+            }
+        }
+
+        FileInfo updateInfo = new FileInfo();
+        updateInfo.setFileName(fileName);
+        updateInfo.setLastUpdateTime(new Date());
+        this.fileInfoMapper.updateByFileIdAndUserId(updateInfo, fileId, userId);
+
+        return this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+    }
+
+    /**
+     * 获取文件流（预览/下载），支持 Range 分段请求
+     */
+    @Override
+    public void getFile(String userId, String fileId, HttpServletResponse response) {
+        FileInfo fileInfo = this.fileInfoMapper.selectByFileIdAndUserId(fileId, userId);
+        if (fileInfo == null) {
+            throw new BusinessException("文件不存在");
+        }
+        String filePath = FileUtils.getFullPath(fileInfo.getFilePath());
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new BusinessException("文件不存在");
+        }
+
+        // 根据后缀设置 Content-Type
+        String suffix = StringTools.getFileSuffix(fileInfo.getFileName());
+        if (suffix == null) {
+            suffix = "";
+        }
+        String contentType = getContentType(suffix);
+        response.setContentType(contentType);
+        response.setHeader("Accept-Ranges", "bytes");
+
+        long fileLength = file.length();
+        long start = 0;
+        long end = fileLength - 1;
+
+        // 解析 Range 请求头
+        String rangeHeader = null;
+        try {
+            rangeHeader = org.springframework.web.context.request.RequestContextHolder
+                    .getRequestAttributes() != null
+                    ? ((org.springframework.web.context.request.ServletRequestAttributes)
+                    org.springframework.web.context.request.RequestContextHolder.getRequestAttributes())
+                    .getRequest().getHeader("Range")
+                    : null;
+        } catch (Exception ignored) {
+        }
+
+        if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+            String rangeValue = rangeHeader.substring(6);
+            int dashIndex = rangeValue.indexOf('-');
+            try {
+                if (dashIndex > 0) {
+                    start = Long.parseLong(rangeValue.substring(0, dashIndex));
+                    if (dashIndex < rangeValue.length() - 1) {
+                        end = Long.parseLong(rangeValue.substring(dashIndex + 1));
+                    }
+                } else if (dashIndex == 0) {
+                    // bytes=-500 最后 500 字节
+                    long suffixLength = Long.parseLong(rangeValue.substring(1));
+                    start = fileLength - suffixLength;
+                }
+                if (end >= fileLength) {
+                    end = fileLength - 1;
+                }
+                long contentLength = end - start + 1;
+                response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+                response.setHeader("Content-Range", "bytes " + start + "-" + end + "/" + fileLength);
+                response.setHeader("Content-Length", String.valueOf(contentLength));
+            } catch (NumberFormatException e) {
+                response.setStatus(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+                response.setHeader("Content-Range", "bytes */" + fileLength);
+                return;
+            }
+        } else {
+            response.setHeader("Content-Length", String.valueOf(fileLength));
+        }
+
+        try (RandomAccessFile raf = new RandomAccessFile(file, "r");
+             OutputStream out = response.getOutputStream()) {
+            raf.seek(start);
+            byte[] buffer = new byte[4096];
+            long remaining = end - start + 1;
+            int len;
+            while (remaining > 0 && (len = raf.read(buffer, 0, (int) Math.min(buffer.length, remaining))) != -1) {
+                out.write(buffer, 0, len);
+                remaining -= len;
+            }
+            out.flush();
+        } catch (Exception e) {
+            logger.error("读取文件失败: fileId={}, path={}", fileId, filePath, e);
+        }
+    }
+
+    private String getContentType(String suffix) {
+        switch (suffix.toLowerCase()) {
+            case "mp3": return "audio/mpeg";
+            case "mp4": return "video/mp4";
+            case "pdf": return "application/pdf";
+            case "docx": return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "xlsx": return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case "pptx": return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            case "txt": return "text/plain";
+            case "png": return "image/png";
+            case "jpg": case "jpeg": return "image/jpeg";
+            case "gif": return "image/gif";
+            default: return "application/octet-stream";
+        }
     }
 
     @Override

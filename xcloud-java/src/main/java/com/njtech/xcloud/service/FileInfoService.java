@@ -104,9 +104,29 @@ public interface FileInfoService {
 	FileInfo newFolder(String userId, String fileName, String filePid);
 
 	/**
+	 * 重命名文件/文件夹
+	 */
+	FileInfo rename(String userId, String fileId, String filePid, String fileName);
+
+	/**
+	 * 获取文件流（预览/下载）
+	 */
+	void getFile(String userId, String fileId, HttpServletResponse response);
+
+	/**
 	 * 获取目录导航信息
 	 */
 	List<FileInfo> getFolderInfo(String userId, String path);
+
+	/**
+	 * 获取文件夹列表（移动文件时选择目标目录）
+	 */
+	List<FileInfo> loadAllFolder(String userId, String filePid, String currentFileIds);
+
+	/**
+	 * 移动文件/文件夹到目标目录
+	 */
+	void changeFileFolder(String userId, String fileIds, String filePid);
 
 	/**
 	 * 获取视频 HLS m3u8 索引文件

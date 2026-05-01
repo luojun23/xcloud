@@ -3,6 +3,7 @@ package com.njtech.xcloud.aspect;
 import com.njtech.xcloud.annotation.GlobalInterceptor;
 import com.njtech.xcloud.annotation.VerifyParam;
 import com.njtech.xcloud.entity.constants.Constants;
+import com.njtech.xcloud.entity.enums.ResponseCodeEnum;
 import com.njtech.xcloud.entity.enums.VerifyRegexEnum;
 import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 import com.njtech.xcloud.exception.BusinessException;
@@ -78,7 +79,7 @@ public class GlobalOperationAspect {
         SessionWebUserVO userInfo = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
 
         if (userInfo == null) {
-            throw new BusinessException("用户未登录或登录已过期");
+            throw new BusinessException(ResponseCodeEnum.CODE_901);
         }
     }
 

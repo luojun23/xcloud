@@ -39,6 +39,7 @@ const fileTypeMap = {
   8:{desc: "程序",icon: "code"},
   9:{desc: "压缩包",icon: "zip"},
   10:{desc: "其他文件",icon: "others"},
+  11:{desc: "ppt",icon: "ppt1"}
 }
 
 const getImage=()=>{

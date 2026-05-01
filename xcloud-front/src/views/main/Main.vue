@@ -263,7 +263,7 @@ const cancelNameEdit = (index) => {
 }
 //保存
 const saveNameEdit = async (index) => {
-  const {fileId, fileNameReal} = tableData.value.list[index];
+  const {fileId, fileNameReal, fileNameSuffix} = tableData.value.list[index];
   if (!fileNameReal || fileNameReal == "" || fileNameReal.indexOf("/") != -1) {
     proxy.Message.warning("文件名不能为空且不含斜杠")
     if (fileId == "") {
@@ -281,7 +281,7 @@ const saveNameEdit = async (index) => {
     params: {
       fileId: fileId,
       filePid: currentFolder.value.fileId,
-      fileName: fileNameReal
+      fileName: fileNameReal + (fileNameSuffix || "")
     }
   })
   if (!result) {
@@ -293,7 +293,9 @@ const saveNameEdit = async (index) => {
 //展示操作按钮
 const showOp = (row) => {
   tableData.value.list.forEach(element => {
-    element.showOp = false;
+    if (element) {
+      element.showOp = false;
+    }
   })
   row.showOp = true;
 };
@@ -374,15 +376,14 @@ const delFile = (row) => {
 const currentMoveFile = ref({})
 //文件移动
 const moveFolder = (data) => {
-  currentFolder.value = data;
-  folderSelectRef.value.showFolderDialog(currentFolder.value.fileId)
+  currentMoveFile.value = data;
+  folderSelectRef.value.showFolderDialog(data.fileId)
 }
 //批量移动
 const folderSelectRef = ref()
 const moveFileBatch = () => {
   currentMoveFile.value = {}
-  folderSelectRef.value.showFolderDialog(currentFolder.value.fileId)
-
+  folderSelectRef.value.showFolderDialog(selectFileList.value)
 }
 const folderSelectDone = async (folderId) => {
   if (currentFolder.value.fileId == folderId) {
@@ -406,6 +407,9 @@ const folderSelectDone = async (folderId) => {
   if (!result) {
     return;
   }
+  proxy.Message.success("移动成功")
+  folderSelectRef.value.close()
+  loadDataList()
 }
 const navigationRef = ref();
 //预览

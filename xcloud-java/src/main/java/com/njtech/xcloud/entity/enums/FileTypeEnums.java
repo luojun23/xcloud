@@ -10,6 +10,7 @@ public enum FileTypeEnums {
     PDF(FileCategoryEnum.DOC, 4, new String[]{".pdf"}, "pdf"),
     WORD(FileCategoryEnum.DOC, 5, new String[]{".docx"}, "word"),
     EXCEL(FileCategoryEnum.DOC, 6, new String[]{".xlsx"}, "excel"),
+    PPT(FileCategoryEnum.DOC, 11, new String[]{".pptx"}, "ppt"),
     TXT(FileCategoryEnum.DOC, 7, new String[]{".txt"}, "txt文本"),
     PROGRAME(FileCategoryEnum.OTHERS, 8, new String[]{".h", ".c", ".hpp", ".hxx", ".cpp", ".cc", ".c++", ".cxx", ".m", ".o", ".s", ".dll", ".cs",
             ".java", ".class", ".js", ".ts", ".css", ".scss", ".vue", ".jsx", ".sql", ".md", ".json", ".html", ".xml"}, "CODE"),
