@@ -276,7 +276,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         userInfo2.setJoinTime(new Date());
         userInfo2.setStatus(Constants.ONE); // 1:正常 0:禁用
         userInfo2.setUseSpace(0L);
-        userInfo2.setTotalSpace(5 * 1024 * 1024L);
+        userInfo2.setTotalSpace(10 * 1024 * 1024L * 1024);
         userInfoMapper.insert(userInfo2);
         redisUtils.del("email_code:" + email);
     }
@@ -284,10 +284,10 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     public SessionWebUserVO login(String email, String password) {
         UserInfo userInfo = userInfoMapper.selectByEmail(email);
-        if (userInfo == null || !userInfo.getPassword().equals(password)){
+        if (userInfo == null || !userInfo.getPassword().equals(password)) {
             throw new BusinessException("邮箱或密码错误");
         }
-        if (UserStatusEnum.NORMAL.getNum() == userInfo.getStatus()){
+        if (UserStatusEnum.NORMAL.getNum() == userInfo.getStatus()) {
             throw new BusinessException("用户状态异常,请联系管理员");
         }
         UserInfo userInfo1 = new UserInfo();
