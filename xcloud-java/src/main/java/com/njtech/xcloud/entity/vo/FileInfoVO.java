@@ -14,6 +14,16 @@ import java.util.Date;
 public class FileInfoVO {
 
     /**
+     * 用户ID
+     */
+    private String userId;
+
+    /**
+     * 用户昵称
+     */
+    private String nickName;
+
+    /**
      * 文件ID
      */
     private String fileId;
@@ -70,6 +80,22 @@ public class FileInfoVO {
      * 0:转码中 1转码失败 2:转码成功
      */
     private Integer status;
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
 
     public String getFileId() {
         return fileId;

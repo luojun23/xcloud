@@ -134,4 +134,8 @@ public interface UserInfoService {
     SessionWebUserVO login(String email, String password);
 
     void retPassword(String email, String password);
+
+    void updateUserSpace(String userId, Integer changeSpace);
+
+    void updateUserStatus(String userId, Integer status);
 }

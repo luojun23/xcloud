@@ -22,7 +22,7 @@
         <div class="iconfont icon-refresh" @click="refresh"></div>
       </div>
       <!-- 导航     -->
-      <Navigation ref="navigationRef" @navChange="navChange"></Navigation>
+      <Navigation ref="navigationRef" @navChange="navChange" :adminShow="true" :watchPath="false"></Navigation>
     </div>
     <div class="file-list" >
       <Table
@@ -42,7 +42,7 @@
             </template>
             <template v-else>
               <Icon v-if="row.folderType == 0" :file-type="row.fileType"></Icon>
-              <Icon v-if="row.folderType == 1" :file-type="0"></Icon>
+              <Icon v-if="row.folderType == 1" :file-type="0" @click="preview(row)"></Icon>
             </template>
             <span class="file-name" :title="row.fileName" v-if="!row.showEdit">
               <span @click="preview(row)"> {{ row.fileName }}</span>
@@ -133,7 +133,7 @@ const loadDataList = async () => {
     pageNo: tableData.value.pageNo,
     pageSize: tableData.value.pageSize,
     fileNameFuzzy: fileNameFuzzy.value,
-    filePid: 0,
+    filePid: currentFolder.value.fileId,
   };
   let result = await proxy.Request({
     url: api.loadDataList,
@@ -168,7 +168,11 @@ const cancelShowOp=(row)=>{
 
 const navChange = (data) => {
   const {categoryId, curFolder} = data;
-  currentFolder.value = curFolder;
+  if (typeof curFolder === 'string') {
+    currentFolder.value = {fileId: curFolder};
+  } else {
+    currentFolder.value = curFolder;
+  }
   category.value = categoryId;
   loadDataList();
 }
@@ -208,12 +212,13 @@ const delFile = (row) => {
             {
               url: api.delFile,
               params: {
-                fileIdAndUserIds: row.userId+"_"+row.fileId,
+                fileId: row.userId+"_"+row.fileId,
               }
             })
         if (!result) {
           return;
         }
+        proxy.Message.success("删除成功")
         loadDataList();
       }
   )
@@ -229,12 +234,13 @@ const delFileBatch = () => {
             {
               url: api.delFile,
               params: {
-                fileIdAndUserIds: selectFileList.value.join(","),
+                fileId: selectFileList.value.join(","),
               }
             })
         if (!result) {
           return;
         }
+        proxy.Message.success("删除成功")
         loadDataList();
       }
   )

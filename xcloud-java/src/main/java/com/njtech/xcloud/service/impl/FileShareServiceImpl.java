@@ -208,4 +208,20 @@ public class FileShareServiceImpl implements FileShareService {
 			this.fileShareMapper.deleteBatchByShareId(shareIdList, userId);
 		}
 	}
+
+	@Override
+	public void checkShareCode(String shareId, String code) {
+		FileShare fileShare = fileShareMapper.selectByShareId(shareId);
+		if (fileShare == null) {
+			throw new BusinessException(ResponseCodeEnum.CODE_905);
+		}
+		if (fileShare.getExpireTime() != null && fileShare.getExpireTime().before(new Date())) {
+			throw new BusinessException(ResponseCodeEnum.CODE_906);
+		}
+		if (!code.equals(fileShare.getCode())) {
+			throw new BusinessException("提取码错误");
+		}
+		//更新浏览次数
+		this.fileShareMapper.updateShareShowCount(shareId);
+	}
 }

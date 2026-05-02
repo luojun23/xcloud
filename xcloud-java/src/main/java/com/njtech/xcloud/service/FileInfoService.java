@@ -117,6 +117,11 @@ public interface FileInfoService {
 	 * 获取目录导航信息
 	 */
 	List<FileInfo> getFolderInfo(String userId, String path);
+	
+	/**
+	 * 获取目录导航信息（管理员模式，无需userId）
+	 */
+	List<FileInfo> getFolderInfo4Admin(String path);
 
 	/**
 	 * 获取文件夹列表（移动文件时选择目标目录）

@@ -22,6 +22,12 @@
           <Uploader ref="uploaderRef" @uploadCallback="uploadCallbackHandler"></Uploader>
         </template>
       </el-popover>
+      <div class="theme-toggle" @click="toggleTheme" :title="isDarkMode ? t('lightMode') : t('darkMode')">
+        <el-icon :size="20"><Sunny v-if="!isDarkMode" /><Moon v-else /></el-icon>
+      </div>
+      <div class="locale-toggle" @click="toggleLocale" title="切换语言">
+        <span class="locale-text">{{ locale === 'zh' ? '文' : 'A' }}</span>
+      </div>
       <el-dropdown>
         <div class="user_info">
           <div class="avatar">
@@ -31,9 +37,9 @@
         </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item @click="updateAvatar">修改头像</el-dropdown-item>
-            <el-dropdown-item @click="updatepassword">修改密码</el-dropdown-item>
-            <el-dropdown-item @click="logout">退出</el-dropdown-item>
+            <el-dropdown-item @click="updateAvatar">{{ t('updateAvatar') }}</el-dropdown-item>
+            <el-dropdown-item @click="updatepassword">{{ t('updatePassword') }}</el-dropdown-item>
+            <el-dropdown-item @click="logout">{{ t('logout') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -61,7 +67,7 @@
         </div>
         <div class="txt" v-if="currentMenu && currentMenu.tips">{{ currentMenu.tips }}</div>
         <div class="space-info">
-          <div>空间使用</div>
+          <div>{{ t('spaceUsage') }}</div>
           <div class="percent">
             <el-progress
                 :percentage="Math.floor(
@@ -98,8 +104,9 @@
   </div>
 </template>
 <script setup>
-import {getCurrentInstance, nextTick, ref, watch} from "vue";
+import {getCurrentInstance, nextTick, ref, watch, computed, onMounted} from "vue";
 import {useRoute, useRouter} from "vue-router";
+import {Sunny, Moon} from '@element-plus/icons-vue'
 import Avatar from "@/components/Avatar.vue";
 import UpdatePassword from "@/views/UpdatePassword.vue";
 import UpdateAvatar from "@/views/UpdateAvatar.vue";
@@ -110,101 +117,102 @@ const {proxy} = getCurrentInstance();
 const router = useRouter();
 const route = useRoute();
 
-const menus = [
+const messages = {
+  zh: {
+    home: '首页', all: '全部', video: '视频', music: '音频', image: '图片',
+    doc: '文档', others: '其他', share: '分享', shareRecord: '分享记录',
+    recycle: '回收站', deletedFiles: '删除的文件', recycleTips: '回收站为你保存10天内删除的文件',
+    settings: '设置', userFiles: '用户文件', userManage: '用户管理',
+    spaceUsage: '空间使用', logout: '退出', updateAvatar: '修改头像', updatePassword: '修改密码',
+    lightMode: '切换浅色模式', darkMode: '切换深色模式'
+  },
+  en: {
+    home: 'Home', all: 'All', video: 'Video', music: 'Music', image: 'Image',
+    doc: 'Document', others: 'Others', share: 'Share', shareRecord: 'Share Records',
+    recycle: 'Recycle', deletedFiles: 'Deleted Files', recycleTips: 'Recycle bin keeps deleted files for 10 days',
+    settings: 'Settings', userFiles: 'User Files', userManage: 'User Manage', 
+    spaceUsage: 'Space Usage', logout: 'Logout', updateAvatar: 'Update Avatar', updatePassword: 'Update Password',
+    lightMode: 'Light Mode', darkMode: 'Dark Mode'
+  }
+}
+
+const locale = ref(localStorage.getItem('xcloud-locale') || 'zh')
+const t = (key) => messages[locale.value]?.[key] || key
+
+const isDarkMode = ref(localStorage.getItem('xcloud-theme') === 'dark')
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value
+  localStorage.setItem('xcloud-theme', isDarkMode.value ? 'dark' : 'light')
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+}
+const toggleLocale = () => {
+  locale.value = locale.value === 'zh' ? 'en' : 'zh'
+  localStorage.setItem('xcloud-locale', locale.value)
+  updateMenus()
+  const menu = menus.value.find(item => item.menuCode === currentMenu.value.menuCode)
+  if (menu) {
+    currentMenu.value = menu
+  }
+}
+
+const getMenus = () => [
   {
     icon: "cloude",
-    name: "首页",
+    name: t('home'),
     menuCode: "main",
     path: "/main/all",
     allshow: "true",
     children: [
-      {
-        icon: "cloude",
-        name: "全部",
-        category: "all",
-        path: "/main/all"
-      },
-      {
-        icon: "video",
-        name: "视频",
-        category: "video",
-        path: "/main/video"
-      },
-      {
-        icon: "music",
-        name: "音频",
-        category: "music",
-        path: "/main/music"
-      },
-      {
-        icon: "image",
-        name: "图片",
-        category: "image",
-        path: "/main/image"
-      },
-      {
-        icon: "doc",
-        name: "文档",
-        category: "doc",
-        path: "/main/doc"
-      },
-      {
-        icon: "more",
-        name: "其他",
-        category: "others",
-        path: "/main/others"
-      },
+      { icon: "cloude", name: t('all'), category: "all", path: "/main/all" },
+      { icon: "video", name: t('video'), category: "video", path: "/main/video" },
+      { icon: "music", name: t('music'), category: "music", path: "/main/music" },
+      { icon: "image", name: t('image'), category: "image", path: "/main/image" },
+      { icon: "doc", name: t('doc'), category: "doc", path: "/main/doc" },
+      { icon: "more", name: t('others'), category: "others", path: "/main/others" },
     ]
   },
   {
     icon: "share",
-    name: "分享",
+    name: t('share'),
     menuCode: "share",
     path: "/myshare",
     allshow: "true",
     children: [
-      {
-        name: "分享记录",
-        path: "/myshare"
-      }
+      { name: t('shareRecord'), path: "/myshare" }
     ]
   },
   {
     icon: "del",
-    name: "回收站",
+    name: t('recycle'),
     menuCode: "recycle",
     path: "/recycle",
-    tips: "回收站为你保存10天内删除的文件",
+    tips: t('recycleTips'),
     allshow: "true",
     children: [
-      {
-        name: "删除的文件",
-        path: "/recycle"
-      },
+      { name: t('deletedFiles'), path: "/recycle" },
     ]
   },
   {
     icon: "settings",
-    name: "设置",
+    name: t('settings'),
     menuCode: "settings",
     path: "/settings/fileList",
     allshow: "false",
     children: [
-      {
-        name: "用户文件",
-        path: "/settings/fileList"
-      },
-      {
-        name: "用户管理",
-        path: "/settings/userList"
-      },
-      {
-        name: "系统设置",
-        path: "/setting/sysSetting"
-      }
+      { name: t('userFiles'), path: "/settings/fileList" },
+      { name: t('userManage'), path: "/settings/userList" },
     ]
   },
-];
+]
+
+const menus = ref(getMenus())
+const updateMenus = () => {
+  menus.value = getMenus()
+}
 
 const currentMenu = ref({})
 const currentPath = ref()
@@ -216,7 +224,7 @@ const userInfo = ref(
 
 const init = () => {
   if (userInfo.value.admin) {
-    menus.forEach(e => {
+    menus.value.forEach(e => {
           if ( e.menuCode == 'settings') {
               e.allshow='true'
          }
@@ -224,6 +232,12 @@ const init = () => {
   }
 }
 init()
+
+onMounted(() => {
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark')
+  }
+})
 
 
 const api = {
@@ -285,7 +299,7 @@ const addFile = (data) => {
 };
 
 const setMenu = (menuCode, path) => {
-  const menu = menus.find((item) => {
+  const menu = menus.value.find((item) => {
     return item.menuCode === menuCode;
   });
   currentMenu.value = menu;
@@ -349,9 +363,48 @@ getUseSpace();
   .right-panel {
     display: flex;
     align-items: center;
+    gap: 14px;
 
     .icon-transfer {
       cursor: pointer;
+    }
+
+    .theme-toggle {
+      cursor: pointer;
+      font-size: 20px;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      transition: all 0.3s;
+
+      &:hover {
+        background: #f0f0f0;
+        color: #333;
+      }
+    }
+
+    .locale-toggle {
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      transition: all 0.3s;
+      font-family: sans-serif;
+
+      &:hover {
+        background: #f0f0f0;
+        color: #333;
+      }
     }
 
     .user_info {
@@ -495,5 +548,71 @@ getUseSpace();
     width: 0;
     padding-left: 20px;
   }
+}
+
+</style>
+
+<style>
+/* 暗色模式适配 - 全局样式 */
+html.dark .header {
+  background-color: #1d1e1f;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .3);
+}
+html.dark .header .name {
+  color: #e0e0e0;
+}
+html.dark .header .right-panel .theme-toggle,
+html.dark .header .right-panel .locale-toggle {
+  color: #bbb;
+}
+html.dark .header .right-panel .theme-toggle:hover,
+html.dark .header .right-panel .locale-toggle:hover {
+  background: #333;
+  color: #fff;
+}
+
+html.dark .body {
+  background-color: #141414;
+}
+html.dark .body .left-sider {
+  background-color: #1d1e1f;
+  border-right: none !important;
+}
+html.dark .body .left-sider .menu-list {
+  background-color: #1d1e1f;
+  border-right: none !important;
+  box-shadow: none !important;
+}
+html.dark .body .left-sider .menu-list .menu-item {
+  color: #bbb;
+}
+html.dark .body .left-sider .menu-list .menu-item:hover {
+  background: #2c2d2f;
+}
+html.dark .body .left-sider .menu-sub-list {
+  background-color: #1d1e1f;
+  border-right: none !important;
+}
+html.dark .body .left-sider .menu-sub-list .item-sub-menu {
+  color: #bbb;
+}
+html.dark .body .left-sider .menu-sub-list .item-sub-menu:hover {
+  background: #2c2d2f;
+}
+html.dark .body .left-sider .menu-sub-list .active {
+  background: #1a2b4c;
+}
+html.dark .body .left-sider .menu-sub-list .active .iconfont,
+html.dark .body .left-sider .menu-sub-list .active .text {
+  color: #409eff;
+}
+html.dark .body .left-sider .menu-sub-list .txt {
+  color: #888;
+}
+html.dark .body .left-sider .menu-sub-list .space-info {
+  color: #888;
+}
+html.dark .body .left-sider .menu-sub-list .space-info .space-use {
+  color: #888;
 }
 </style>

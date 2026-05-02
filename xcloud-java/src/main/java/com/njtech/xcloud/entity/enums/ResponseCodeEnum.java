@@ -10,8 +10,9 @@ public enum ResponseCodeEnum {
     CODE_901(901, "未登录或登录超时，请重新登录"),
     CODE_902(902, "无权限访问"),
     CODE_903(903, "参数校验失败"),
-    CODE_904(904, "网盘空间不足");
-
+    CODE_904(904, "网盘空间不足"),
+    CODE_905(905, "分享链接不存在"),
+    CODE_906(906, "分享已过期");
     private Integer code;
 
     private String msg;

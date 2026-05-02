@@ -20,6 +20,7 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\exception\BusinessException.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\query\FileInfoQuery.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\constants\Constants.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\WebShareInfoVO.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\VerifyRegexEnum.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\FileShareService.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\mappers\EmailCodeMapper.java
@@ -42,7 +43,9 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\UserInfoService.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\mappers\FileShareMapper.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\aspect\GlobalOperationAspect.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\AdminController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\po\FileShare.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\UserInfoVo.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\impl\FileShareServiceImpl.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\po\FileInfo.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\po\UserInfo.java
@@ -54,6 +57,7 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\DateUtil.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\query\EmailCodeQuery.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\FileTypeEnums.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\WebShareController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\FileUtils.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\FileShareVO.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\ABaseController.java

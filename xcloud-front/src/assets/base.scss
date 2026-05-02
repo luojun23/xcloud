@@ -35,6 +35,18 @@ body {
   color: #636d7e;
 }
 
+html.dark body {
+  background-color: #141414;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #2c2d2f;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
 *{
   box-sizing: border-box;
   padding: 0;

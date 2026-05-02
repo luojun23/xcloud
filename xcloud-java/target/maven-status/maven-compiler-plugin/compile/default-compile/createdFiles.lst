@@ -9,6 +9,7 @@ com\njtech\xcloud\service\impl\FileInfoServiceImpl.class
 com\njtech\xcloud\controller\FileShareController.class
 com\njtech\xcloud\entity\constants\Constants.class
 com\njtech\xcloud\entity\enums\DateTimePatternEnum.class
+com\njtech\xcloud\entity\vo\WebShareInfoVO.class
 com\njtech\xcloud\utils\CaptchaUtil.class
 com\njtech\xcloud\controller\ABaseController.class
 com\njtech\xcloud\entity\vo\SessionWebUserVO.class
@@ -23,6 +24,8 @@ com\njtech\xcloud\config\CosConfig.class
 com\njtech\xcloud\entity\query\FileShareQuery.class
 com\njtech\xcloud\utils\FileUtils.class
 com\njtech\xcloud\entity\vo\ResponseVO.class
+com\njtech\xcloud\entity\vo\UserInfoVo.class
+com\njtech\xcloud\controller\WebShareController.class
 com\njtech\xcloud\service\FileInfoService.class
 com\njtech\xcloud\XcloudApplication.class
 com\njtech\xcloud\entity\enums\FileTypeEnums.class
@@ -50,6 +53,7 @@ com\njtech\xcloud\dto\DownloadFileDto.class
 com\njtech\xcloud\mappers\BaseMapper.class
 com\njtech\xcloud\entity\po\FileShare.class
 com\njtech\xcloud\exception\BusinessException.class
+com\njtech\xcloud\controller\AdminController.class
 com\njtech\xcloud\annotation\GlobalInterceptor.class
 com\njtech\xcloud\mappers\FileInfoMapper.class
 com\njtech\xcloud\controller\UserInfoController.class

@@ -50,15 +50,6 @@ const router = createRouter({
           component:()=>import("../views/recycle/Recycle.vue")
         },
         {
-          path:'/setting/sysSetting',
-          name:'系统设置',
-          meta:{
-            needLogin:true,
-            menuCode:"settings"
-          },
-          component:()=>import("../views/admin/SysSetting.vue")
-        },
-        {
           path:'/settings/userList',
           name:'用户管理',
           meta:{

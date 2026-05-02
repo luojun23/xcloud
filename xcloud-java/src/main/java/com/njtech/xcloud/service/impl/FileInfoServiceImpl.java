@@ -322,6 +322,26 @@ public class FileInfoServiceImpl implements FileInfoService {
         return folderList;
     }
 
+    @Override
+    public List<FileInfo> getFolderInfo4Admin(String path) {
+        List<FileInfo> folderList = new ArrayList<>();
+        if (StringTools.isEmpty(path)) {
+            return folderList;
+        }
+        String[] folderIds = path.split("/");
+        for (String folderId : folderIds) {
+            if (StringTools.isEmpty(folderId)) {
+                continue;
+            }
+            FileInfo folder = this.fileInfoMapper.selectByFileId(folderId);
+            if (folder != null && folder.getFolderType() != null
+                    && folder.getFolderType().equals(FileFolderTypeEnums.FOLDER.getType())) {
+                folderList.add(folder);
+            }
+        }
+        return folderList;
+    }
+
     /**
      * 获取文件夹列表（移动文件时选择目标目录）
      */

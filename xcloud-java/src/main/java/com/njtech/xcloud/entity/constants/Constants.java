@@ -11,6 +11,7 @@ public class Constants {
     public static final Integer TEN = 10;
 
     public static final String SESSION_WEB_USER = "session_web_user";
+    public static final String SESSION_SHARE = "session_share";
     public static final String REDIS_KEY_USER_SPACE_USE = "redis_key_user_space_use";
     public static final String REDIS_KEY_TEMP_SIZE = "redis_key_temp_size:";
 

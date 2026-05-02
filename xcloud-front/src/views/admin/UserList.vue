@@ -77,10 +77,10 @@
       <el-form-item label="昵称">
         {{formData.nickName}}
       </el-form-item>
-      <el-form-item label="空间大小" prop="changeSpace">
+      <el-form-item label="调整空间" prop="changeSpace">
         <el-input
             clearable
-            placeholder="请输入空间大小"
+            placeholder="正数增加，负数减少"
             v-model.trim="formData.changeSpace"
         >
           <template #suffix>MB</template>
@@ -101,7 +101,7 @@ const formRef = ref();
 
 const rule = {
   changeSpace:[
-    {required:true,message:"请输入空间大小"},
+    {required:true,message:"请输入调整空间"},
   ],
 }
 
@@ -228,7 +228,7 @@ const submitForm = ()=>{
     }
     let parmas = {};
     Object.assign(parmas,formData.value)
-    let result = proxy.Request({
+    let result = await proxy.Request({
       url:api.updateUserSpace,
       params:parmas,
     })

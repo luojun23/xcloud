@@ -319,6 +319,36 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     }
 
+    @Override
+    public void updateUserSpace(String userId, Integer changeSpace) {
+        UserInfo userInfo = userInfoMapper.selectByUserId(userId);
+        if (userInfo == null) {
+            throw new BusinessException("用户不存在");
+        }
+        Long changeSpaceByte = changeSpace * 1024 * 1024L;
+        Long newTotalSpace = userInfo.getTotalSpace() + changeSpaceByte;
+        if (newTotalSpace < 0) {
+            throw new BusinessException("空间大小不能为负数");
+        }
+        if (newTotalSpace < userInfo.getUseSpace()) {
+            throw new BusinessException("空间大小不能小于已使用空间");
+        }
+        UserInfo updateInfo = new UserInfo();
+        updateInfo.setTotalSpace(newTotalSpace);
+        userInfoMapper.updateByUserId(updateInfo, userId);
+    }
+
+    @Override
+    public void updateUserStatus(String userId, Integer status) {
+        UserInfo userInfo = userInfoMapper.selectByUserId(userId);
+        if (userInfo == null) {
+            throw new BusinessException("用户不存在");
+        }
+        UserInfo updateInfo = new UserInfo();
+        updateInfo.setStatus(status);
+        userInfoMapper.updateByUserId(updateInfo, userId);
+    }
+
     /**
      * 发送邮件
      *

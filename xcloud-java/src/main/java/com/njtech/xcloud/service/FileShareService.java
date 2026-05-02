@@ -79,4 +79,6 @@ public interface FileShareService {
 	 */
 	void cancelShare(String userId, String shareIds);
 
+	void checkShareCode(String shareId,String code);
+
 }
