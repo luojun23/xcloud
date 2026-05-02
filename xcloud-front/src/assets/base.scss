@@ -1,24 +1,12 @@
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 0;
+  height: 0;
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: rgb(239,239,239);
-  border-right: 2px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #bfbfbf;
-  border-right: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover{
-  background: #bfbfbf;
-}
-
-::-webkit-scrollbar-corner {
-  background: #bfbfbf;
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 :root {
@@ -37,14 +25,6 @@ body {
 
 html.dark body {
   background-color: #141414;
-}
-
-html.dark ::-webkit-scrollbar-track {
-  background: #2c2d2f;
-}
-
-html.dark ::-webkit-scrollbar-thumb {
-  background: #555;
 }
 
 *{

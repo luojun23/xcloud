@@ -2,7 +2,7 @@
   <div class="home"></div>
   <div class="header">
     <div class="logo">
-      <span class="iconfont icon-pan"></span>
+      <span class="iconfont icon-yunshangchuan"></span>
       <div class="name">XCloud云盘</div>
     </div>
     <div class="right-panel">
@@ -161,22 +161,22 @@ const toggleLocale = () => {
 
 const getMenus = () => [
   {
-    icon: "cloude",
+    icon: "yunpan",
     name: t('home'),
     menuCode: "main",
     path: "/main/all",
     allshow: "true",
     children: [
-      { icon: "cloude", name: t('all'), category: "all", path: "/main/all" },
+      { icon: "yunpan", name: t('all'), category: "all", path: "/main/all" },
       { icon: "video", name: t('video'), category: "video", path: "/main/video" },
       { icon: "music", name: t('music'), category: "music", path: "/main/music" },
       { icon: "image", name: t('image'), category: "image", path: "/main/image" },
-      { icon: "doc", name: t('doc'), category: "doc", path: "/main/doc" },
+      { icon: "document", name: t('doc'), category: "doc", path: "/main/doc" },
       { icon: "more", name: t('others'), category: "others", path: "/main/others" },
     ]
   },
   {
-    icon: "share",
+    icon: "webchanpinziliaowenjianfenxiangicon01",
     name: t('share'),
     menuCode: "share",
     path: "/myshare",
@@ -347,7 +347,7 @@ getUseSpace();
     display: flex;
     align-items: center;
 
-    .icon-pan {
+    .icon-yunshangchuan {
       font-size: 40px;
       color: #007fff;
     }
