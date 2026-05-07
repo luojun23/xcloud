@@ -1,29 +1,42 @@
 <template>
   <div class="login-body">
-    <div class="bg">
-      <div class="illustration">
-        <div class="chart-card">
-          <div class="chart-line"></div>
-          <div class="chart-dots">
-            <span></span>
-            <span></span>
-            <span></span>
+    <div class="left-section">
+      <div class="logo">
+        <span class="iconfont icon-yunshangchuan"></span>
+        <span class="logo-text">XCloud云盘</span>
+      </div>
+      <div class="slogan">
+        <h1>XCloud云盘</h1>
+        <h2>电脑高效拍档 <span class="highlight">一键存爽快看</span></h2>
+      </div>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span class="iconfont icon-transfer"></span>
           </div>
+          <div class="feature-title">分片秒传，极速下载</div>
+          <div class="feature-desc">大文件切片、断点续传、秒传、上传进度、上传速度限制</div>
         </div>
-        <div class="person">
-          <div class="person-head"></div>
-          <div class="person-body"></div>
-          <div class="person-legs"></div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span class="iconfont icon-folder"></span>
+          </div>
+          <div class="feature-title">轻松存储，高效管理</div>
+          <div class="feature-desc">新建目录、文件重命名、文件移动、文件分享、删除</div>
         </div>
-        <div class="pie-chart"></div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span class="iconfont icon-video"></span>
+          </div>
+          <div class="feature-title">在线预览，便捷高效</div>
+          <div class="feature-desc">视频分片播放，pdf、excel、word等多种格式文件在线预览</div>
+        </div>
       </div>
     </div>
     <div class="login-panel">
       <!-- 登录卡片 -->
       <div class="login-card" v-if="opType==1">
-        <div class="login-title">
-          XCloud云盘
-        </div>
+        <div class="login-title">XCloud云盘</div>
         <el-form
           class="login-form"
           :model="formData"
@@ -110,10 +123,6 @@
               <div class="social-item" @click="showQQLogin">
                 <img src="@/assets/qq.jpg" alt="QQ" />
                 <span>QQ登录</span>
-              </div>
-              <div class="social-item" @click="showWechatLogin">
-                <div class="wechat-icon"></div>
-                <span>微信登录</span>
               </div>
             </div>
           </div>
@@ -620,144 +629,185 @@ const restForm=()=>{
 <style scoped>
 .login-body {
   height: 100vh;
-  background: #f5f7fa;
+  background: linear-gradient(135deg, #f0f5ff 0%, #e6f0ff 50%, #f5f0ff 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 100px;
-  padding: 0 10%;
+  gap: 80px;
+  padding: 0 8%;
+  position: relative;
+  overflow: hidden;
 
-  .bg {
+  &::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(64, 158, 255, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(103, 194, 58, 0.06) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .left-section {
     flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    max-width: 600px;
     position: relative;
-    height: 100%;
+    z-index: 1;
 
-    .illustration {
-      position: relative;
-      width: 400px;
-      height: 300px;
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 60px;
 
-      .chart-card {
-        position: absolute;
-        left: 0;
-        top: 50px;
-        width: 200px;
-        height: 140px;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        padding: 20px;
-
-        .chart-line {
-          width: 100%;
-          height: 4px;
-          background: #409eff;
-          border-radius: 2px;
-          margin-bottom: 15px;
-        }
-
-        .chart-dots {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-
-          span {
-            width: 80%;
-            height: 3px;
-            background: #e4e7ed;
-            border-radius: 2px;
-
-            &:nth-child(1) { width: 60%; }
-            &:nth-child(2) { width: 80%; }
-            &:nth-child(3) { width: 50%; }
-          }
-        }
+      .icon-yunshangchuan {
+        font-size: 32px;
+        color: #007fff;
       }
 
-      .person {
-        position: absolute;
-        left: 150px;
-        top: 80px;
-        z-index: 2;
+      .logo-text {
+        font-size: 20px;
+        font-weight: 600;
+        color: #303133;
+      }
+    }
 
-        .person-head {
-          width: 40px;
-          height: 40px;
-          background: #5b8ff9;
-          border-radius: 50%;
-          margin: 0 auto;
-        }
+    .slogan {
+      margin-bottom: 50px;
 
-        .person-body {
-          width: 60px;
-          height: 80px;
-          background: #5b8ff9;
-          border-radius: 30px 30px 0 0;
-          margin-top: -10px;
-        }
+      h1 {
+        font-size: 42px;
+        font-weight: 700;
+        color: #303133;
+        margin: 0 0 15px 0;
+        line-height: 1.2;
+      }
 
-        .person-legs {
-          display: flex;
-          gap: 10px;
-          justify-content: center;
+      h2 {
+        font-size: 28px;
+        font-weight: 400;
+        color: #606266;
+        margin: 0;
+        line-height: 1.4;
 
-          &::before,
+        .highlight {
+          color: #409eff;
+          font-weight: 600;
+          position: relative;
+
           &::after {
             content: '';
-            width: 20px;
-            height: 50px;
-            background: #303133;
-            border-radius: 0 0 10px 10px;
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(120deg, rgba(64, 158, 255, 0.2) 0%, rgba(64, 158, 255, 0.05) 100%);
+            border-radius: 4px;
+            z-index: -1;
           }
         }
       }
+    }
 
-      .pie-chart {
-        position: absolute;
-        right: 50px;
-        top: 30px;
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: conic-gradient(#67c23a 0deg 120deg, #e4e7ed 120deg 360deg);
-        opacity: 0.6;
+    .feature-cards {
+      display: flex;
+      gap: 20px;
+
+      .feature-card {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        transition: transform 0.3s, box-shadow 0.3s;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-icon {
+          width: 44px;
+          height: 44px;
+          background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 14px;
+
+          .iconfont {
+            font-size: 60px;
+            color: #fff;
+          }
+        }
+
+        .feature-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: #303133;
+          margin-bottom: 8px;
+        }
+
+        .feature-desc {
+          font-size: 13px;
+          color: #909399;
+          line-height: 1.6;
+        }
       }
     }
   }
 
   .login-panel {
-    width: 400px;
+    width: 420px;
+    position: relative;
+    z-index: 1;
 
     .login-card {
       background: #fff;
-      border-radius: 8px;
-      padding: 40px 35px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
+      padding: 40px 40px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
 
       .login-title {
         text-align: center;
-        font-size: 18px;
+        margin-bottom: 30px;
+        font-size: 20px;
         font-weight: 600;
         color: #303133;
-        margin-bottom: 25px;
       }
 
       .login-form {
         :deep(.el-input__wrapper) {
-          border-radius: 4px;
-          box-shadow: 0 0 0 1px #dcdfe6 inset;
-          padding-left: 12px;
+          border-radius: 8px;
+          box-shadow: none;
+          background: #f5f7fa;
+          padding-left: 14px;
 
           &.is-focus {
-            box-shadow: 0 0 0 1px #409eff inset;
+            background: #fff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
           }
         }
 
         :deep(.el-input__inner) {
-          height: 42px;
+          height: 44px;
+          background: transparent;
         }
 
         :deep(.el-input__prefix) {
@@ -776,16 +826,16 @@ const restForm=()=>{
           }
 
           .check-code-img {
-            height: 42px;
-            border-radius: 4px;
+            height: 44px;
+            border-radius: 8px;
             cursor: pointer;
-            border: 1px solid #dcdfe6;
+            border: none;
           }
 
           .send-code-btn {
             width: 110px;
-            height: 42px;
-            border-radius: 4px;
+            height: 44px;
+            border-radius: 8px;
             font-size: 13px;
             padding: 0 10px;
 
@@ -807,11 +857,20 @@ const restForm=()=>{
 
         .login-btn {
           width: 100%;
-          height: 42px;
-          border-radius: 4px;
+          height: 46px;
+          border-radius: 10px;
           font-size: 15px;
           font-weight: 500;
           margin-top: 5px;
+          background: linear-gradient(135deg, #409eff 0%, #3a8ee6 100%);
+          border: none;
+          box-shadow: 0 4px 14px rgba(64, 158, 255, 0.3);
+          transition: transform 0.2s, box-shadow 0.2s;
+
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(64, 158, 255, 0.4);
+          }
         }
 
         .bottom-links {
@@ -845,53 +904,45 @@ const restForm=()=>{
               content: '';
               flex: 1;
               height: 1px;
-              background: #e4e7ed;
+              background: repeating-linear-gradient(
+                90deg,
+                #dcdfe6 0px,
+                #dcdfe6 4px,
+                transparent 4px,
+                transparent 8px
+              );
             }
 
             span {
-              padding: 0 16px;
+              padding: 0 12px;
               color: #909399;
-              font-size: 14px;
+              font-size: 13px;
+              white-space: nowrap;
             }
           }
 
           .social-login {
             display: flex;
             justify-content: center;
-            gap: 60px;
 
             .social-item {
               display: flex;
-              flex-direction: column;
               align-items: center;
-              gap: 8px;
+              gap: 10px;
               cursor: pointer;
               transition: opacity 0.3s;
+              padding: 8px 20px;
+              border-radius: 8px;
 
               &:hover {
                 opacity: 0.8;
+                background: #f5f7fa;
               }
 
               img {
-                width: 36px;
-                height: 36px;
+                width: 28px;
+                height: 28px;
                 border-radius: 50%;
-              }
-
-              .wechat-icon {
-                width: 36px;
-                height: 36px;
-                background: #07c160;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                &::before {
-                  content: '微';
-                  color: #fff;
-                  font-size: 14px;
-                }
               }
 
               span {
