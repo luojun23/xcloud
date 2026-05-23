@@ -382,6 +382,11 @@
         </el-form-item>
       </el-form>
     </Dialog>
+
+    <!-- 底部备案号 -->
+    <div class="icp-footer">
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">赣ICP备2025062598号</a>
+    </div>
   </div>
 </template>
 
@@ -527,14 +532,17 @@ const getEmailCode= ()=>{
     })
   });
 }
-// 显示QQ登录提示
-const showQQLogin = () => {
-  proxy.Message.info("QQ登录接口开发中...");
-}
-
-// 显示微信登录提示
-const showWechatLogin = () => {
-  proxy.Message.info("微信登录接口开发中...");
+// QQ登录 - 获取授权URL并跳转
+const showQQLogin = async () => {
+  let result = await proxy.Request({
+    url: "/qqLogin",
+    errorCallback: () => {
+      proxy.Message.error("QQ登录服务暂不可用");
+    }
+  });
+  if (result) {
+    window.location.href = result.data;
+  }
 }
 
 const doSubmit=()=>{
@@ -970,6 +978,26 @@ const restForm=()=>{
       border-radius: 4px;
       cursor: pointer;
       border: 1px solid #dcdfe6;
+    }
+  }
+
+  .icp-footer {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 1;
+
+    a {
+      color: #909399;
+      font-size: 13px;
+      text-decoration: none;
+      transition: color 0.3s;
+
+      &:hover {
+        color: #606266;
+      }
     }
   }
 }

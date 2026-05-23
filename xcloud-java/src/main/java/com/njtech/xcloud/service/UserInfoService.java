@@ -9,6 +9,7 @@ import com.njtech.xcloud.entity.vo.ResponseVO;
 import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 
 /**
@@ -138,4 +139,13 @@ public interface UserInfoService {
     void updateUserSpace(String userId, Integer changeSpace);
 
     void updateUserStatus(String userId, Integer status);
+
+    /**
+     * QQ登录：根据授权码完成整个OAuth流程，返回SessionWebUserVO
+     *
+     * @param code    QQ授权码
+     * @param session HTTP会话
+     * @return 登录用户信息
+     */
+    SessionWebUserVO qqLogin(String code, HttpSession session) throws Exception;
 }

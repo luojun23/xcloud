@@ -47,12 +47,15 @@ public class ProcessUtils {
             logger.info("执行命令: {}", command);
         }
         ProcessBuilder processBuilder = new ProcessBuilder();
-        String os = System.getProperty("os.name").toLowerCase();
-        if (os.contains("win")) {
-            processBuilder.command("cmd", "/c", command);
-        } else {
-            processBuilder.command("bash", "-c", command);
-        }
+
+         String os = System.getProperty("os.name").toLowerCase();
+         if (os.contains("win")) {
+             //Windows:
+             processBuilder.command("cmd", "/c", command);
+         } else {
+             //Linux:
+             processBuilder.command("bash", "-c", command);
+         }
         // 合并错误输出到标准输出，防止stderr缓冲区满导致子进程挂起
         processBuilder.redirectErrorStream(true);
 

@@ -1,5 +1,6 @@
 package com.njtech.xcloud.service.impl;
 
+import com.njtech.xcloud.config.Appconfig;
 import com.njtech.xcloud.config.RedisComponent;
 import com.njtech.xcloud.config.RedisUtils;
 import com.njtech.xcloud.dto.DownloadFileDto;
@@ -60,6 +61,9 @@ public class FileInfoServiceImpl implements FileInfoService {
     @Resource
     private ApplicationContext applicationContext;
 
+    @Resource
+    private Appconfig appconfig;
+
     public static final Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
 
     /**
@@ -68,6 +72,14 @@ public class FileInfoServiceImpl implements FileInfoService {
     @Override
     public List<FileInfo> findListByParam(FileInfoQuery param) {
         return this.fileInfoMapper.selectList(param);
+    }
+
+    private String normalizeFfmpegPath(String path) {
+        return path == null ? null : path.replace("\\", "/");
+    }
+
+    private String getFfmpegCommand() {
+        return normalizeFfmpegPath(appconfig.getFfmpegPath());
     }
 
     /**
@@ -749,27 +761,33 @@ public class FileInfoServiceImpl implements FileInfoService {
             tsFolder.mkdirs();
         }
 
-        final String CMD_TRANSFER_2TS = "ffmpeg -y -i \"%s\" -c copy -bsf:v h264_mp4toannexb \"%s\"";
-        final String CMD_TRANSFER_2TS_FALLBACK = "ffmpeg -y -i \"%s\" -c:v libx264 -preset ultrafast -crf 23 -c:a aac -b:a 128k \"%s\"";
+        String normalizedVideoPath = normalizeFfmpegPath(videoPath);
+        String normalizedFullPath = normalizeFfmpegPath(fullPath);
+        String ffmpegCommand = getFfmpegCommand();
+        // Windows: final String CMD_TRANSFER_2TS = "ffmpeg -y -i \"%s\" -c copy -bsf:v h264_mp4toannexb \"%s\"";
+        final String CMD_TRANSFER_2TS = "%s -y -i \"%s\" -c copy -bsf:v h264_mp4toannexb -f mpegts \"%s\"";
+        // Windows: final String CMD_TRANSFER_2TS_FALLBACK = "ffmpeg -y -i \"%s\" -c:v libx264 -preset ultrafast -crf 23 -c:a aac -b:a 128k \"%s\"";
+        final String CMD_TRANSFER_2TS_FALLBACK = "%s -y -i \"%s\" -c:v libx264 -preset ultrafast -crf 23 -c:a aac -b:a 128k -f mpegts \"%s\"";
 
-        String tsPath = fullPath + "/" + Constants.TS_NAME;
+        String tsPath = normalizedFullPath + "/" + Constants.TS_NAME;
 
         // 生成 .ts（先尝试 copy，失败则降级为转码）
-        String cmd = String.format(CMD_TRANSFER_2TS, videoPath, tsPath);
+        String cmd = String.format(CMD_TRANSFER_2TS, ffmpegCommand, normalizedVideoPath, tsPath);
         try {
             ProcessUtils.executeCommand(cmd, true);
         } catch (BusinessException e) {
             logger.warn("视频copy失败，尝试转码, fileId={}, error={}", fileId, e.getMessage());
-            cmd = String.format(CMD_TRANSFER_2TS_FALLBACK, videoPath, tsPath);
+            cmd = String.format(CMD_TRANSFER_2TS_FALLBACK, ffmpegCommand, normalizedVideoPath, tsPath);
             ProcessUtils.executeCommand(cmd, true);
         }
 
         // 生成标准 HLS m3u8 和切片 .ts（hls.js 需要标准 HLS 格式）
-        String m3u8Path = fullPath + "/" + Constants.M3U8_NAME;
-        String tsPattern = fullPath + "/" + fileId + "_%04d.ts";
+        String m3u8Path = normalizedFullPath + "/" + Constants.M3U8_NAME;
+        String tsPattern = normalizedFullPath + "/" + fileId + "_%04d.ts";
+        // Windows: cmd = String.format("ffmpeg -y -i \"%s\" -c copy -map 0 -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename \"%s\" \"%s\"", tsPath, tsPattern, m3u8Path);
         cmd = String.format(
-                "ffmpeg -y -i \"%s\" -c copy -map 0 -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename \"%s\" \"%s\"",
-                tsPath, tsPattern, m3u8Path);
+                "%s -y -i \"%s\" -c copy -map 0 -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename \"%s\" \"%s\"",
+                ffmpegCommand, tsPath, tsPattern, m3u8Path);
         ProcessUtils.executeCommand(cmd, true);
 
         // 删除 index.ts
@@ -789,13 +807,20 @@ public class FileInfoServiceImpl implements FileInfoService {
      */
     private void generateThumbnail(String sourcePath, String coverPathAbsolute, Integer width, Integer height, boolean isVideo) {
         try {
+            String ffmpegCommand = getFfmpegCommand();
+            String normalizedSourcePath = normalizeFfmpegPath(sourcePath);
+            String normalizedCoverPath = normalizeFfmpegPath(coverPathAbsolute);
             String cmd;
             if (isVideo) {
                 // 视频：取第1秒帧，按指定宽高比缩放
-                cmd = String.format("ffmpeg -i \"%s\" -y -vframes 1 -vf scale=%d:%d/a \"%s\"", sourcePath, width, height, coverPathAbsolute);
+                // Windows: cmd = String.format("ffmpeg -i \"%s\" -y -vframes 1 -vf scale=%d:%d/a \"%s\"", sourcePath, width, height, coverPathAbsolute);
+                cmd = String.format("%s -y -i \"%s\" -vframes 1 -vf \"scale=%d:%d:force_original_aspect_ratio=decrease\" \"%s\"",
+                        ffmpegCommand, normalizedSourcePath, width, height, normalizedCoverPath);
             } else {
                 // 图片：指定宽度，高度按比例自动计算
-                cmd = String.format("ffmpeg -i \"%s\" -vf scale=%d:-1 \"%s\" -y", sourcePath, width, coverPathAbsolute);
+                // Windows: cmd = String.format("ffmpeg -i \"%s\" -vf scale=%d:-1 \"%s\" -y", sourcePath, width, coverPathAbsolute);
+                cmd = String.format("%s -y -i \"%s\" -vf \"scale=%d:-1\" \"%s\"",
+                        ffmpegCommand, normalizedSourcePath, width, normalizedCoverPath);
             }
 
             ProcessUtils.executeCommand(cmd, 60);
@@ -993,7 +1018,7 @@ public class FileInfoServiceImpl implements FileInfoService {
      * 删除文件（移入回收站）
      */
     @Override
-    public void delFile(String userId, String fileIds) {
+    public void   delFile(String userId, String fileIds) {
         if (StringTools.isEmpty(fileIds)) {
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }

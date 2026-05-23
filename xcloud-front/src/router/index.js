@@ -70,6 +70,11 @@ const router = createRouter({
       ]
     },
     {
+      path: '/qqCallback',
+      name: 'QQCallback',
+      component: ()=> import('../views/QQCallback.vue')
+    },
+    {
       path: '/shareCheck/:shareId',
       name: '分享校验',
       component: ()=> import('../views/webShare/shareCheck.vue')

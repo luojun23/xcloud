@@ -20,7 +20,9 @@ import com.njtech.xcloud.mappers.FileInfoMapper;
 import com.njtech.xcloud.mappers.UserInfoMapper;
 import com.njtech.xcloud.service.UserInfoService;
 import com.njtech.xcloud.utils.StringTools;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -31,8 +33,16 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -187,12 +197,12 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Override
     public UserInfo getUserInfoByQqOpenId(String qqOpenId) {
-        return null;
+        return this.userInfoMapper.selectByQqOpenId(qqOpenId);
     }
 
     @Override
     public Integer updateUserInfoByQqOpenId(UserInfo bean, String qqOpenId) {
-        return null;
+        return this.userInfoMapper.updateByQqOpenId(bean, qqOpenId);
     }
 
     @Override
@@ -429,5 +439,143 @@ public class UserInfoServiceImpl implements UserInfoService {
         sb.append("</body>");
         sb.append("</html>");
         return sb.toString();
+    }
+
+    /**
+     * QQ登录：用授权码完成OAuth流程，查找或注册用户，返回登录信息
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SessionWebUserVO qqLogin(String code, HttpSession session) throws Exception {
+        if (StringUtils.isEmpty(code)) {
+            throw new BusinessException("QQ登录授权失败，未获取到授权码");
+        }
+
+        // 1. 用code换取access_token
+        String redirectUrl;
+        try {
+            redirectUrl = URLEncoder.encode(appconfig.getQqUrlRedirect(), "UTF-8");
+        } catch (Exception e) {
+            throw new BusinessException("回调地址编码失败");
+        }
+        String tokenUrl = String.format(appconfig.getQqUrlAccessToken(),
+                appconfig.getQqAppId(), appconfig.getQqAppKey(), code, redirectUrl);
+        String tokenResult = httpGet(tokenUrl);
+        String accessToken = extractParam(tokenResult, "access_token");
+        if (StringUtils.isEmpty(accessToken)) {
+            throw new BusinessException("获取QQ access_token失败");
+        }
+
+        // 2. 用access_token获取openid
+        String openidUrl = String.format(appconfig.getQqUrlOpenid(), accessToken);
+        String openidResult = httpGet(openidUrl);
+        String openid = extractOpenid(openidResult);
+        if (StringUtils.isEmpty(openid)) {
+            throw new BusinessException("获取QQ openid失败");
+        }
+
+        // 3. 用access_token+openid获取用户信息
+        String userInfoUrl = String.format(appconfig.getQqUrlUserInfo(),
+                accessToken, appconfig.getQqAppId(), openid);
+        String userInfoResult = httpGet(userInfoUrl);
+        JSONObject qqUser = JSONObject.parseObject(userInfoResult);
+        String nickName = qqUser.getString("nickname");
+        String avatar = qqUser.getString("figureurl_qq_2");
+        if (StringUtils.isEmpty(avatar)) {
+            avatar = qqUser.getString("figureurl_qq_1");
+        }
+
+        // 4. 根据openid查找或创建用户
+        UserInfo userInfo = userInfoMapper.selectByQqOpenId(openid);
+        if (userInfo == null) {
+            // 首次QQ登录，自动注册
+            userInfo = new UserInfo();
+            userInfo.setUserId(StringTools.getRandomNumber(Constants.TEN));
+            userInfo.setNickName(nickName != null ? nickName : "QQ用户");
+            userInfo.setQqOpenId(openid);
+            userInfo.setQqAvatar(avatar);
+            userInfo.setPassword(StringTools.Md5(StringTools.getRandomNumber(Constants.TEN)));
+            userInfo.setJoinTime(new Date());
+            userInfo.setStatus(Constants.ONE);
+            userInfo.setUseSpace(0L);
+            userInfo.setTotalSpace(10 * 1024 * 1024L * 1024);
+            userInfoMapper.insert(userInfo);
+        } else {
+            // 更新昵称和头像
+            UserInfo updateInfo = new UserInfo();
+            updateInfo.setNickName(nickName);
+            updateInfo.setQqAvatar(avatar);
+            updateInfo.setLastLoginTime(new Date());
+            userInfoMapper.updateByQqOpenId(updateInfo, openid);
+            userInfo = userInfoMapper.selectByQqOpenId(openid);
+        }
+
+        // 5. 构建session用户信息
+        SessionWebUserVO sessionWebUserVO = new SessionWebUserVO();
+        sessionWebUserVO.setUserId(userInfo.getUserId());
+        sessionWebUserVO.setNickName(userInfo.getNickName());
+        boolean isAdmin = ArrayUtils.contains(appconfig.getAdminEmails().split(","),
+                userInfo.getEmail() != null ? userInfo.getEmail() : "");
+        sessionWebUserVO.setAdmin(isAdmin);
+        session.setAttribute(Constants.SESSION_WEB_USER, sessionWebUserVO);
+
+        // 6. 初始化用户空间缓存
+        UserSpaceDto userSpaceDto = new UserSpaceDto();
+        Long useSpace = fileInfoMapper.selectUseSpace(userInfo.getUserId());
+        userSpaceDto.setUseSpace(useSpace);
+        userSpaceDto.setTotalSpace((long) userInfo.getTotalSpace());
+        redisUtils.set(Constants.REDIS_KEY_USER_SPACE_USE + userInfo.getUserId(),
+                userSpaceDto, Constants.REDIS_KEY_EXPIRES_DAY);
+
+        return sessionWebUserVO;
+    }
+
+    /**
+     * HTTP GET请求（兼容Java 8）
+     */
+    private String httpGet(String urlStr) throws Exception {
+        URL url = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(conn.getInputStream(), "UTF-8"));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+        }
+        reader.close();
+        return sb.toString();
+    }
+
+    /**
+     * 从URL参数格式字符串中提取参数值（如 access_token=XXX&expires_in=XXX）
+     */
+    private String extractParam(String response, String paramName) {
+        if (StringUtils.isEmpty(response)) return null;
+        String[] params = response.split("&");
+        for (String param : params) {
+            String[] kv = param.split("=", 2);
+            if (kv.length == 2 && kv[0].equals(paramName)) {
+                return kv[1];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 从QQ的callback响应中提取openid
+     * 响应格式: callback( {"client_id":"...","openid":"..."} );
+     */
+    private String extractOpenid(String response) {
+        if (StringUtils.isEmpty(response)) return null;
+        Pattern pattern = Pattern.compile("\"openid\"\\s*:\\s*\"([^\"]+)\"");
+        Matcher matcher = pattern.matcher(response);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
     }
 }

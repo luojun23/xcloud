@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import com.njtech.xcloud.annotation.GlobalInterceptor;
 import com.njtech.xcloud.annotation.VerifyParam;
+import com.njtech.xcloud.config.Appconfig;
 import com.njtech.xcloud.config.RedisComponent;
-import com.njtech.xcloud.config.RedisUtils;
 import com.njtech.xcloud.dto.UserSpaceDto;
 import com.njtech.xcloud.entity.constants.Constants;
 import com.njtech.xcloud.entity.enums.VerifyRegexEnum;
@@ -18,7 +18,8 @@ import com.njtech.xcloud.service.FileInfoService;
 import com.njtech.xcloud.service.UserInfoService;
 import com.njtech.xcloud.utils.CaptchaUtil;
 import com.njtech.xcloud.utils.StringTools;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
+import java.net.URLEncoder;
 
 /**
  * Controller
@@ -41,12 +43,6 @@ public class UserInfoController extends ABaseController {
     private UserInfoService userInfoService;
 
     @Resource
-    private StringRedisTemplate stringRedisTemplate;
-
-    @Resource
-    private RedisUtils redisUtils;
-
-    @Resource
     private FileInfoService fileInfoService;
 
     @Resource
@@ -54,6 +50,11 @@ public class UserInfoController extends ABaseController {
 
     @Resource
     private RedisComponent redisComponent;
+
+    @Resource
+    private Appconfig appconfig;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserInfoController.class);
 
     /**
      * 获取验证码图片流
@@ -241,5 +242,38 @@ public class UserInfoController extends ABaseController {
         SessionWebUserVO sessionWebUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
         UserSpaceDto userSpaceUse = redisComponent.getUserSpaceUse(sessionWebUserVO.getUserId());
         return getSuccessResponseVO(userSpaceUse);
+    }
+
+    /**
+     * 获取QQ授权URL，前端跳转到QQ登录页
+     */
+    @RequestMapping("/qqLogin")
+    @GlobalInterceptor(checkLogin = false)
+    public ResponseVO<String> qqLogin() {
+        String state = StringTools.getRandomNumber(Constants.TEN);
+        String redirectUrl;
+        try {
+            redirectUrl = URLEncoder.encode(appconfig.getQqUrlRedirect(), "UTF-8");
+        } catch (Exception e) {
+            throw new BusinessException("回调地址编码失败");
+        }
+        String url = String.format(appconfig.getQqUrlAuthorization(),
+                appconfig.getQqAppId(), redirectUrl, state);
+        return getSuccessResponseVO(url);
+    }
+ 
+    /**
+     * QQ OAuth回调接口
+     * 前端携带QQ返回的code调用此接口，后端完成OAuth流程并返回用户信息
+     */
+    @RequestMapping("/qqCallback")
+    @GlobalInterceptor(checkLogin = false)
+    public ResponseVO<SessionWebUserVO> qqCallback(
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "state", required = false) String state,
+            HttpServletRequest request,
+            HttpSession session) throws Exception {
+        SessionWebUserVO sessionWebUserVO = userInfoService.qqLogin(code, session);
+        return getSuccessResponseVO(sessionWebUserVO);
     }
 }
