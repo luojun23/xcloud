@@ -31,4 +31,9 @@ public interface FileInfoMapper<T,P> extends BaseMapper<T,P> {
 
 
     Long selectUseSpace(String userId);
+
+	/**
+	 * 更新AI字段（aiSummary, transcriptText）
+	 */
+	Integer updateAiFields(@Param("bean") T t);
 }

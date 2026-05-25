@@ -102,6 +102,16 @@ public class FileInfo implements Serializable {
 	 */
 	private Integer delFlag;
 
+	/**
+	 * AI 智能总结
+	 */
+	private String aiSummary;
+
+	/**
+	 * 语音转文字全文
+	 */
+	private String transcriptText;
+
 
 	public void setFileId(String fileId){
 		this.fileId = fileId;
@@ -229,6 +239,22 @@ public class FileInfo implements Serializable {
 
 	public Integer getDelFlag(){
 		return this.delFlag;
+	}
+
+	public void setAiSummary(String aiSummary){
+		this.aiSummary = aiSummary;
+	}
+
+	public String getAiSummary(){
+		return this.aiSummary;
+	}
+
+	public void setTranscriptText(String transcriptText){
+		this.transcriptText = transcriptText;
+	}
+
+	public String getTranscriptText(){
+		return this.transcriptText;
 	}
 
 	@Override

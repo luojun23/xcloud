@@ -81,6 +81,16 @@ public class FileInfoVO {
      */
     private Integer status;
 
+    /**
+     * AI 智能总结
+     */
+    private String aiSummary;
+
+    /**
+     * 语音转文字全文
+     */
+    private String transcriptText;
+
     public String getUserId() {
         return userId;
     }
@@ -183,5 +193,21 @@ public class FileInfoVO {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public String getAiSummary() {
+        return aiSummary;
+    }
+
+    public void setAiSummary(String aiSummary) {
+        this.aiSummary = aiSummary;
+    }
+
+    public String getTranscriptText() {
+        return transcriptText;
+    }
+
+    public void setTranscriptText(String transcriptText) {
+        this.transcriptText = transcriptText;
     }
 }

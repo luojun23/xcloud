@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/xcloud.iml" filepath="$PROJECT_DIR$/xcloud.iml" />
-      <module fileurl="file://$PROJECT_DIR$/xcloud-java/xcloud-java.iml" filepath="$PROJECT_DIR$/xcloud-java/xcloud-java.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/xcloud.iml" filepath="$PROJECT_DIR$/.idea/xcloud.iml" />
     </modules>
   </component>
 </project>

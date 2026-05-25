@@ -3,7 +3,7 @@
   <div class="header">
     <div class="logo">
       <span class="iconfont icon-yunshangchuan"></span>
-      <div class="name">XCloud云盘</div>
+      <div class="name">XCloud-AI</div>
     </div>
     <div class="right-panel">
       <el-popover
@@ -122,6 +122,7 @@ const messages = {
     home: '首页', all: '全部', video: '视频', music: '音频', image: '图片',
     doc: '文档', others: '其他', share: '分享', shareRecord: '分享记录',
     recycle: '回收站', deletedFiles: '删除的文件', recycleTips: '回收站为你保存10天内删除的文件',
+    ai: 'AI 分析', aiDesc: '视频智能解析 · 字幕提取 · 内容总结',
     settings: '设置', userFiles: '用户文件', userManage: '用户管理',
     spaceUsage: '空间使用', logout: '退出', updateAvatar: '修改头像', updatePassword: '修改密码',
     lightMode: '切换浅色模式', darkMode: '切换深色模式'
@@ -130,6 +131,7 @@ const messages = {
     home: 'Home', all: 'All', video: 'Video', music: 'Music', image: 'Image',
     doc: 'Document', others: 'Others', share: 'Share', shareRecord: 'Share Records',
     recycle: 'Recycle', deletedFiles: 'Deleted Files', recycleTips: 'Recycle bin keeps deleted files for 10 days',
+    ai: 'AI Analysis', aiDesc: 'Video AI Analysis · Subtitle Extract · Content Summary',
     settings: 'Settings', userFiles: 'User Files', userManage: 'User Manage', 
     spaceUsage: 'Space Usage', logout: 'Logout', updateAvatar: 'Update Avatar', updatePassword: 'Update Password',
     lightMode: 'Light Mode', darkMode: 'Dark Mode'
@@ -184,6 +186,17 @@ const getMenus = () => [
     children: [
       { name: t('shareRecord'), path: "/myshare" }
     ]
+  },
+  {
+    icon: "video",
+    name: t('ai'),
+    menuCode: "ai",
+    path: "/ai",
+    allshow: "true",
+    children: [
+      { icon: "video", name: t('ai'), path: "/ai" }
+    ],
+    tips: t('aiDesc')
   },
   {
     icon: "del",

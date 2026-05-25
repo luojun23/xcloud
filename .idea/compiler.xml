@@ -10,9 +10,6 @@
         <module name="xcloud-java" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="xcloud-java" target="8" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

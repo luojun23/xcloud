@@ -1,3 +1,4 @@
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\config\ThreadPoolConfig.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\EmailCodeController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\impl\FileInfoServiceImpl.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\DateTimePatternEnum.java
@@ -9,8 +10,12 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\config\CosConfig.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\dto\UserSpaceDto.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\mappers\BaseMapper.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\AiService.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\AiController.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\DeepSeekUtils.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\ProcessUtils.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\EmailCodeService.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\strategy\AiAnalysisStrategy.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\mappers\FileInfoMapper.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\FileInfoController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\service\impl\UserInfoServiceImpl.java
@@ -56,13 +61,17 @@ C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xc
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\PaginationResultVO.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\DateUtil.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\query\EmailCodeQuery.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\dto\AnalysisTaskMsg.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\FileTypeEnums.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\WebShareController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\FileUtils.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\consumer\VideoAnalysisConsumer.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\FileShareVO.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\utils\AliyunAsrUtils.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\ABaseController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\annotation\GlobalInterceptor.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\controller\RecycleController.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\enums\FileFolderTypeEnums.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\config\RedisComponent.java
 C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\entity\vo\SessionWebUserVO.java
+C:\Users\Luojun\Desktop\workspace\xcloud\xcloud-java\src\main\java\com\njtech\xcloud\strategy\impl\AliyunDeepSeekStrategy.java

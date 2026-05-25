@@ -7,7 +7,7 @@
           :align="fileInfo.fileCategory==1?'center':'top'"
           v-else
   >
-    <PreviewVideo :url="url" v-if="fileInfo.fileCategory==1"></PreviewVideo>
+    <PreviewVideo :url="url" :fileId="fileInfo.fileId" v-if="fileInfo.fileCategory==1"></PreviewVideo>
     <PreviewDoc :url="url" v-if="fileInfo.fileType==5"></PreviewDoc>
     <PreviewExcel :url="url" v-if="fileInfo.fileType==6"></PreviewExcel>
     <PreviewPdf :url="url" v-if="fileInfo.fileType==4"></PreviewPdf>

@@ -3,11 +3,11 @@
     <div class="left-section">
       <div class="logo">
         <span class="iconfont icon-yunshangchuan"></span>
-        <span class="logo-text">XCloud云盘</span>
+        <span class="logo-text">XCloud-AI</span>
       </div>
       <div class="slogan">
-        <h1>XCloud云盘</h1>
-        <h2>电脑高效拍档 <span class="highlight">一键存爽快看</span></h2>
+        <h1>XCloud-AI</h1>
+        <h2>智能云盘 <span class="highlight">AI视频解析</span></h2>
       </div>
       <div class="feature-cards">
         <div class="feature-card">
@@ -31,12 +31,19 @@
           <div class="feature-title">在线预览，便捷高效</div>
           <div class="feature-desc">视频分片播放，pdf、excel、word等多种格式文件在线预览</div>
         </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span class="iconfont icon-video"></span>
+          </div>
+          <div class="feature-title">AI 智能视频解析</div>
+          <div class="feature-desc">视频字幕提取、内容智能总结、语音转文字、深度洞察分析</div>
+        </div>
       </div>
     </div>
     <div class="login-panel">
       <!-- 登录卡片 -->
       <div class="login-card" v-if="opType==1">
-        <div class="login-title">XCloud云盘</div>
+        <div class="login-title">XCloud-AI</div>
         <el-form
           class="login-form"
           :model="formData"

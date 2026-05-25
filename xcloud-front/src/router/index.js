@@ -32,6 +32,15 @@ const router = createRouter({
           component:()=>import("../views/main/Main.vue")
         },
         {
+          path:'/ai',
+          name:'AI分析',
+          meta:{
+            needLogin:true,
+            menuCode:"ai"
+          },
+          component:()=>import("../views/ai/AiAnalysis.vue")
+        },
+        {
           path:'/myshare',
           name:'我的分享',
           meta:{

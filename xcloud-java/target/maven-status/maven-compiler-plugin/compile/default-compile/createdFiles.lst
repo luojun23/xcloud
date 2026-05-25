@@ -21,6 +21,8 @@ com\njtech\xcloud\entity\po\FileInfo.class
 com\njtech\xcloud\dto\UserSpaceDto.class
 com\njtech\xcloud\entity\enums\VerifyRegexEnum.class
 com\njtech\xcloud\config\CosConfig.class
+com\njtech\xcloud\utils\AliyunAsrUtils.class
+com\njtech\xcloud\strategy\impl\AliyunDeepSeekStrategy.class
 com\njtech\xcloud\entity\query\FileShareQuery.class
 com\njtech\xcloud\utils\FileUtils.class
 com\njtech\xcloud\entity\vo\ResponseVO.class
@@ -31,10 +33,15 @@ com\njtech\xcloud\XcloudApplication.class
 com\njtech\xcloud\entity\enums\FileTypeEnums.class
 com\njtech\xcloud\entity\query\FileInfoQuery.class
 com\njtech\xcloud\entity\vo\FileShareVO.class
+com\njtech\xcloud\controller\AiController.class
+com\njtech\xcloud\service\AiService.class
 com\njtech\xcloud\service\EmailCodeService.class
 com\njtech\xcloud\entity\po\UserInfo.class
 com\njtech\xcloud\utils\DateUtil$1.class
+com\njtech\xcloud\config\ThreadPoolConfig.class
 com\njtech\xcloud\controller\EmailCodeController.class
+com\njtech\xcloud\dto\AnalysisTaskMsg.class
+com\njtech\xcloud\strategy\AiAnalysisStrategy.class
 com\njtech\xcloud\aspect\GlobalOperationAspect.class
 com\njtech\xcloud\entity\enums\FileCategoryEnum.class
 com\njtech\xcloud\controller\AGlobalExceptionHandlerController.class
@@ -43,6 +50,7 @@ com\njtech\xcloud\annotation\VerifyParam.class
 com\njtech\xcloud\entity\enums\UploadStatusEnums.class
 com\njtech\xcloud\entity\po\EmailCode.class
 com\njtech\xcloud\utils\ProcessUtils.class
+com\njtech\xcloud\consumer\VideoAnalysisConsumer.class
 com\njtech\xcloud\entity\enums\UserStatusEnum.class
 com\njtech\xcloud\utils\IpUtil.class
 com\njtech\xcloud\mappers\EmailCodeMapper.class
@@ -61,6 +69,7 @@ com\njtech\xcloud\entity\vo\PaginationResultVO.class
 com\njtech\xcloud\service\impl\FileShareServiceImpl.class
 com\njtech\xcloud\mappers\UserInfoMapper.class
 com\njtech\xcloud\service\UserInfoService.class
+com\njtech\xcloud\utils\DeepSeekUtils.class
 com\njtech\xcloud\entity\query\UserInfoQuery.class
 com\njtech\xcloud\config\RedisUtils.class
 com\njtech\xcloud\entity\query\EmailCodeQuery.class
