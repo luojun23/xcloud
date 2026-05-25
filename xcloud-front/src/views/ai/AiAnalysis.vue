@@ -14,7 +14,7 @@
       <div class="upload-split">
         <!-- 本地文件上传 -->
         <div class="upload-pane local-pane" @click="triggerFileInput" @dragover.prevent="isDragOver=true" @dragleave.prevent="isDragOver=false" @drop.prevent="handleDrop">
-          <input type="file" ref="fileInputRef" @change="handleFileChange" accept="video/*" hidden />
+          <input type="file" ref="fileInputRef" @change="handleFileChange" accept="video/*,audio/*" multiple hidden />
           <el-icon :size="40" color="#409eff"><UploadFilled /></el-icon>
           <div class="pane-title">本地上传</div>
           <div class="pane-desc">{{ isDragOver ? '松手上传' : '点击或拖拽视频文件' }}</div>
@@ -108,12 +108,15 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { getCurrentInstance } from 'vue'
 import { marked } from 'marked'
+import { useRouter } from 'vue-router'
+import SparkMD5 from 'spark-md5'
 import {
   UploadFilled, Link, Right, VideoCamera, VideoPlay,
   Document, MagicStick, Download, Delete, Loading
 } from '@element-plus/icons-vue'
 
 const { proxy } = getCurrentInstance()
+const router = useRouter()
 
 // 状态变量
 const videoUrl = ref('')
@@ -144,7 +147,7 @@ const renderedMarkdown = computed(() => {
 })
 
 // API 地址
-const API_BASE = '/api/ai'
+const API_BASE = '/api'
 
 // 消息提示
 const showMsg = (msg, type = 'success') => {
@@ -158,49 +161,110 @@ const triggerFileInput = () => {
   fileInputRef.value?.click()
 }
 
-// 文件选择处理
-const handleFileChange = async (e) => {
-  const selectedFile = e.target.files[0]
-  if (!selectedFile) return
-  file.value = selectedFile
-  videoUrl.value = ''
-  await uploadFile()
-  e.target.value = ''
+// 计算文件 MD5（SparkMD5 流式计算，大文件不卡顿）
+const computeFileMd5 = (file) => {
+  return new Promise((resolve, reject) => {
+    const blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
+    const chunkSize = 2 * 1024 * 1024 // 2MB
+    const chunks = Math.ceil(file.size / chunkSize)
+    const spark = new SparkMD5.ArrayBuffer()
+    const fileReader = new FileReader()
+    let currentChunk = 0
+
+    fileReader.onload = (e) => {
+      spark.append(e.target.result)
+      currentChunk++
+      if (currentChunk < chunks) {
+        loadNext()
+      } else {
+        resolve(spark.end())
+      }
+    }
+    fileReader.onerror = (e) => reject(e)
+
+    const loadNext = () => {
+      const start = currentChunk * chunkSize
+      const end = Math.min(start + chunkSize, file.size)
+      fileReader.readAsArrayBuffer(blobSlice.call(file, start, end))
+    }
+    loadNext()
+  })
 }
 
-// 拖拽处理
+// 上传单个文件（用 fetch 直接发 multipart，不走 proxy.Request 封装）
+const uploadSingleFile = async (selectedFile) => {
+  const fileMd5 = await computeFileMd5(selectedFile)
+  const formData = new FormData()
+  formData.append('file', selectedFile)
+  formData.append('fileName', selectedFile.name)
+  formData.append('filePid', '0')
+  formData.append('fileMd5', fileMd5)
+  formData.append('chunkIndex', '0')
+  formData.append('chunks', '1')
+
+  const res = await fetch('/api/file/uploadFile', {
+    method: 'POST',
+    body: formData,
+    credentials: 'include'
+  })
+  const data = await res.json()
+  return data.code === 200 ? data : null
+}
+
+// 文件选择处理（支持批量）
+const handleFileChange = async (e) => {
+  const files = e.target.files
+  if (!files || files.length === 0) return
+  const validFiles = Array.from(files).filter(f =>
+    f.type.startsWith('video/') || f.type.startsWith('audio/')
+  )
+  if (validFiles.length === 0) {
+    showMsg('请选择视频或音频文件', 'warning')
+    e.target.value = ''
+    return
+  }
+  uploading.value = true
+  try {
+    const results = await Promise.all(validFiles.map(f => uploadSingleFile(f)))
+    const successCount = results.filter(r => r).length
+    if (successCount > 0) {
+      showMsg(`成功上传 ${successCount} 个文件`)
+      fetchList()
+    }
+    if (successCount < validFiles.length) {
+      showMsg(`${validFiles.length - successCount} 个文件上传失败`, 'error')
+    }
+  } catch (error) {
+    showMsg('上传失败: ' + error.message, 'error')
+  } finally {
+    uploading.value = false
+    e.target.value = ''
+  }
+}
+
+// 拖拽处理（支持批量）
 const handleDrop = async (e) => {
   isDragOver.value = false
   const droppedFiles = e.dataTransfer.files
   if (!droppedFiles || droppedFiles.length === 0) return
-  const selectedFile = droppedFiles[0]
-  if (!selectedFile.type.startsWith('video/')) {
-    showMsg('仅支持上传视频文件', 'warning')
+  const validFiles = Array.from(droppedFiles).filter(f =>
+    f.type.startsWith('video/') || f.type.startsWith('audio/')
+  )
+  if (validFiles.length === 0) {
+    showMsg('仅支持视频或音频文件', 'warning')
     return
   }
-  file.value = selectedFile
-  videoUrl.value = ''
-  await uploadFile()
-}
-
-// 本地文件上传
-const file = ref(null)
-const uploadFile = async () => {
-  if (!file.value) return
   uploading.value = true
-  const formData = new FormData()
-  formData.append('file', file.value)
-
   try {
-    const res = await fetch(API_BASE + '/upload', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include'
-    })
-    const text = await res.text()
-    if (!res.ok) throw new Error(text || '上传失败')
-    showMsg('本地上传完成')
-    fetchList()
+    const results = await Promise.all(validFiles.map(f => uploadSingleFile(f)))
+    const successCount = results.filter(r => r).length
+    if (successCount > 0) {
+      showMsg(`成功上传 ${successCount} 个文件`)
+      fetchList()
+    }
+    if (successCount < validFiles.length) {
+      showMsg(`${validFiles.length - successCount} 个文件上传失败`, 'error')
+    }
   } catch (error) {
     showMsg('上传失败: ' + error.message, 'error')
   } finally {
@@ -208,69 +272,69 @@ const uploadFile = async () => {
   }
 }
 
-// URL上传
+// URL上传（暂不支持）
 const handleUrlUpload = async () => {
-  if (!videoUrl.value) return
-  if (!videoUrl.value.startsWith('http')) {
-    showMsg('请输入合法的 http/https 链接', 'warning')
-    return
-  }
-  uploading.value = true
-  const formData = new FormData()
-  formData.append('url', videoUrl.value)
-
-  try {
-    const res = await fetch(API_BASE + '/upload-url', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include'
-    })
-    const text = await res.text()
-    if (!res.ok) throw new Error(text)
-    showMsg('链接资源已入库')
-    videoUrl.value = ''
-    fetchList()
-  } catch (error) {
-    let errMsg = error.message
-    if (errMsg.includes('Unsupported URL')) errMsg = '不支持该平台链接'
-    showMsg('解析失败: ' + errMsg, 'error')
-  } finally {
-    uploading.value = false
-  }
+  showMsg('暂不支持链接下载，请使用本地上传', 'warning')
+  videoUrl.value = ''
 }
 
-// 获取视频列表
+// 字段映射：将后端 FileInfoVO 映射为前端需要的格式
+const mapFileInfo = (item) => ({
+  id: item.fileId,
+  fileId: item.fileId,
+  filename: item.fileName,
+  fileName: item.fileName,
+  uploadTime: item.lastUpdateTime || item.createTime,
+  createTime: item.createTime,
+  status: 'COMPLETED', // xcloud 文件已上传完成，始终可用
+  aiSummary: item.aiSummary,
+  transcriptText: item.transcriptText,
+  fileCategory: item.fileCategory
+})
+
+// 获取视频/音频文件列表（调用 /ai/list 接口，返回分页数据）
 const fetchList = async () => {
   try {
     const timestamp = new Date().getTime()
-    const res = await fetch(API_BASE + '/list?_t=' + timestamp, {
-      credentials: 'include'
-    })
-    const data = await res.json()
-    if (data.code === 200 && data.data) {
-      mediaList.value = data.data.reverse()
-    } else if (Array.isArray(data)) {
-      mediaList.value = data.reverse()
+    // 分别查询视频和音频
+    const [videoRes, musicRes] = await Promise.all([
+      fetch(API_BASE + '/ai/list?_t=' + timestamp + '&pageSize=100', { credentials: 'include' }),
+      fetch(API_BASE + '/ai/list?_t=' + timestamp + '&fileCategory=2&pageSize=100', { credentials: 'include' })
+    ])
+    const videoData = await videoRes.json()
+    const musicData = await musicRes.json()
+
+    let list = []
+    if (videoData.code === 200 && videoData.data && videoData.data.list) {
+      list = list.concat(videoData.data.list.map(mapFileInfo))
     }
+    if (musicData.code === 200 && musicData.data && musicData.data.list) {
+      list = list.concat(musicData.data.list.map(mapFileInfo))
+    }
+    // 去重并按时间倒序
+    const seen = new Set()
+    mediaList.value = list.filter(item => {
+      if (seen.has(item.id)) return false
+      seen.add(item.id)
+      return true
+    }).sort((a, b) => new Date(b.uploadTime) - new Date(a.uploadTime))
   } catch (error) {
     console.error('获取列表失败:', error)
   }
 }
 
-// 删除
 const deleteItem = async (item) => {
   try {
-    await proxy.Confirm(`确认要永久删除 "${item.filename}" 吗？`, async () => {
-      const res = await fetch(API_BASE + '/delete?id=' + item.id, {
-        method: 'DELETE',
-        credentials: 'include'
+    await proxy.Confirm(`确认要删除 "${item.fileName}" 吗？`, async () => {
+      const res = await proxy.Request({
+        url: '/ai/delFile',
+        params: {
+          fileIds: item.fileId
+        }
       })
-      const text = await res.text()
-      if (text.includes('成功') || text.includes('ok')) {
+      if (res) {
         showMsg('文件已删除')
-        mediaList.value = mediaList.value.filter(i => i.id !== item.id)
-      } else {
-        showMsg(text, 'error')
+        mediaList.value = mediaList.value.filter(i => i.fileId !== item.fileId)
       }
     })
   } catch (e) {
@@ -285,26 +349,18 @@ const formatTime = (timeStr) => {
   return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-// 下载音频
+// 下载音频（通过 /file/createDownloadUrl + /api/download 获取真实文件）
 const downloadAudio = async (item) => {
-  let fileName = item.filename || 'audio.mp3'
-  fileName = fileName.replace(/\.[^/.]+$/, '') + '.mp3'
   try {
-    showMsg('正在转码并下载...')
-    const res = await fetch(API_BASE + '/download?id=' + item.id, {
-      credentials: 'include'
+    showMsg('正在准备下载...')
+    const result = await proxy.Request({
+      url: API_BASE + '/file/createDownloadUrl/' + item.fileId
     })
-    if (!res.ok) throw new Error('下载失败')
-    const blob = await res.blob()
-    const downloadUrl = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = downloadUrl
-    link.download = fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(downloadUrl)
-    showMsg('下载完成')
+    if (!result || !result.data) {
+      showMsg('获取下载链接失败', 'error')
+      return
+    }
+    window.location.href = API_BASE + '/download?code=' + result.data
   } catch (e) {
     showMsg('下载失败', 'error')
   }
@@ -312,11 +368,11 @@ const downloadAudio = async (item) => {
 
 // 提取文字
 const transcribe = async (item) => {
-  if (item.transcriptText) {
+  if (item.transcriptText && item.transcriptText.length > 10) {
     showAiResult(item, 'text')
     return
   }
-  if (pollingTimers.value[item.id] && pollingTimers.value[item.id].type === 'text') {
+  if (pollingTimers.value[item.fileId] && pollingTimers.value[item.fileId].type === 'text') {
     drawerVisible.value = true
     drawerTitle.value = '全量文字提取'
     drawerType.value = 'text'
@@ -330,8 +386,15 @@ const transcribe = async (item) => {
   drawerLoading.value = true
   drawerContent.value = '提取任务已提交，正在识别语音流...'
   try {
-    await fetch(API_BASE + '/transcribe?id=' + item.id, { credentials: 'include' })
-    startPolling(item.id, 'text')
+    const formData = new URLSearchParams()
+    formData.append('fileId', item.fileId)
+    await fetch(API_BASE + '/ai/transcribe', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
+    startPolling(item.fileId, 'text')
   } catch (e) {
     drawerContent.value = 'Error: ' + e
     drawerLoading.value = false
@@ -340,11 +403,11 @@ const transcribe = async (item) => {
 
 // AI 智能总结
 const aiAnalyze = async (item) => {
-  if (item.aiSummary && !item.aiSummary.includes('任务已') && !item.aiSummary.includes('正在') && !item.aiSummary.includes('[MQ]')) {
+  if (item.aiSummary && item.aiSummary.length > 20 && !item.aiSummary.includes('任务已') && !item.aiSummary.includes('正在')) {
     showAiResult(item, 'ai')
     return
   }
-  if (pollingTimers.value[item.id] && pollingTimers.value[item.id].type === 'ai') {
+  if (pollingTimers.value[item.fileId] && pollingTimers.value[item.fileId].type === 'ai') {
     drawerVisible.value = true
     drawerTitle.value = 'AI 智能总结'
     drawerType.value = 'ai'
@@ -358,16 +421,23 @@ const aiAnalyze = async (item) => {
   drawerLoading.value = true
   drawerContent.value = '正在向 AI 集群请求计算资源...'
   try {
-    const res = await fetch(API_BASE + '/analyze?id=' + item.id, { credentials: 'include' })
-    const text = await res.text()
-    if (text.includes('⚠') || text.includes('❌')) {
-      showMsg(text, 'warning')
+    const formData = new URLSearchParams()
+    formData.append('fileId', item.fileId)
+    const res = await fetch(API_BASE + '/ai/analyze', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
+    const data = await res.json()
+    if (data.code !== 200) {
+      showMsg(data.info || '分析失败', 'warning')
       drawerVisible.value = false
       drawerLoading.value = false
       return
     }
-    startPolling(item.id, 'ai')
-    drawerContent.value = text + '\n\n等待消费者接单处理...'
+    startPolling(item.fileId, 'ai')
+    drawerContent.value = '分析任务已提交，正在处理中...'
   } catch (e) {
     drawerContent.value = 'Error: ' + e
     drawerLoading.value = false
@@ -383,55 +453,56 @@ const showAiResult = (item, type) => {
   drawerContent.value = type === 'ai' ? item.aiSummary : item.transcriptText
 }
 
-// 轮询
-const startPolling = (id, type) => {
-  if (pollingTimers.value[id]) clearInterval(pollingTimers.value[id].timer)
+// 轮询（通过 /ai/result/{fileId} 查询结果，比 list 更轻量）
+const startPolling = (fileId, type) => {
+  if (pollingTimers.value[fileId]) clearInterval(pollingTimers.value[fileId].timer)
 
   const timer = setInterval(async () => {
-    await fetchList()
-    const item = mediaList.value.find(i => i.id === id)
-    if (!item) return
+    try {
+      const res = await fetch(API_BASE + '/ai/result/' + fileId, { credentials: 'include' })
+      const data = await res.json()
+      if (data.code !== 200 || !data.data) return
 
-    let isFinished = false
-    let result = ''
+      const item = data.data
+      let isFinished = false
+      let result = ''
 
-    if (type === 'ai') {
-      const text = item.aiSummary || ''
-      const isSuccess = text.includes('##')
-      const isError = text.includes('失败') || text.includes('Error') || text.includes('超时')
-      if (isSuccess || isError) {
-        isFinished = true
-        result = text
+      if (type === 'ai') {
+        const text = item.aiSummary || ''
+        if (text && text.length > 20 && !text.includes('任务已') && !text.includes('正在')) {
+          isFinished = true
+          result = text
+        }
+      } else if (type === 'text') {
+        const text = item.transcriptText || ''
+        if (text && text.length > 10) {
+          isFinished = true
+          result = text
+        }
       }
-    } else if (type === 'text') {
-      const text = item.transcriptText || ''
-      if (text && (text.length > 10 || text.includes('失败'))) {
-        isFinished = true
-        result = text
-      }
-    }
 
-    if (isFinished) {
-      if (drawerVisible.value) {
-        drawerContent.value = result
-        drawerLoading.value = false
-      }
-      if (result.includes('失败') || result.includes('Error')) {
-        showMsg('任务结束，但存在错误', 'warning')
-      } else {
+      if (isFinished) {
+        if (drawerVisible.value) {
+          drawerContent.value = result
+          drawerLoading.value = false
+        }
         showMsg('任务完成')
+        clearInterval(timer)
+        delete pollingTimers.value[fileId]
+        // 刷新列表
+        fetchList()
       }
-      clearInterval(timer)
-      delete pollingTimers.value[id]
+    } catch (e) {
+      console.error('轮询出错:', e)
     }
   }, 3000)
 
-  pollingTimers.value[id] = { timer, type }
+  pollingTimers.value[fileId] = { timer, type }
 
   setTimeout(() => {
-    if (pollingTimers.value[id]) {
-      clearInterval(pollingTimers.value[id].timer)
-      delete pollingTimers.value[id]
+    if (pollingTimers.value[fileId]) {
+      clearInterval(pollingTimers.value[fileId].timer)
+      delete pollingTimers.value[fileId]
     }
   }, 300000)
 }

@@ -14,15 +14,19 @@ import com.njtech.xcloud.entity.vo.ResponseVO;
 import com.njtech.xcloud.entity.vo.SessionWebUserVO;
 import com.njtech.xcloud.mappers.FileInfoMapper;
 import com.njtech.xcloud.service.AiService;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import com.njtech.xcloud.service.FileInfoService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * AI 视频分析 Controller
@@ -37,50 +41,69 @@ public class AiController extends ABaseController {
     @Resource
     private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 
-    @Autowired(required = false)
-    private RocketMQTemplate rocketMQTemplate;
+    @Resource
+    private RabbitTemplate rabbitTemplate;
+
+    @Resource
+    private FileInfoService fileInfoService;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
-     * 提交 AI 分析任务（异步，通过 RocketMQ 解耦）
+     * 提交 AI 分析任务（异步，通过 RabbitMQ 解耦）
      * action: analyze=完整分析(转录+总结), transcribe=仅提取文字
      */
     @PostMapping("/submit")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO submitAnalysis(HttpSession session,
                                      @VerifyParam(required = true) String fileId,
-                                     @VerifyParam(required = true) String action) {
+                                     @VerifyParam(required = true) String action, Principal principal) {
         SessionWebUserVO userInfo = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
 
-        // 校验文件存在且属于当前用户
-        FileInfo fileInfo = fileInfoMapper.selectByFileIdAndUserId(fileId, userInfo.getUserId());
-        if (fileInfo == null) {
-            return getServerErrorResponseVO("文件不存在");
+        // Redisson 分布式锁防重复提交（同一用户同一文件）
+        String lockKey = "ai:lock:" + userInfo.getUserId() + ":" + fileId;
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            if (!lock.tryLock(0, 30, TimeUnit.SECONDS)) {
+                return getServerErrorResponseVO("分析任务正在进行中，请勿重复提交");
+            }
+        } catch (InterruptedException e) {
+            return getServerErrorResponseVO("系统繁忙，请稍后再试");
         }
 
-        // 只支持视频和音频类型
-        if (fileInfo.getFileCategory() != null
-                && fileInfo.getFileCategory() != FileCategoryEnum.VIDEO.getCategory()
-                && fileInfo.getFileCategory() != FileCategoryEnum.MUSIC.getCategory()) {
-            return getServerErrorResponseVO("仅支持视频和音频文件的 AI 分析");
-        }
+        try {
+            // 校验文件存在且属于当前用户
+            FileInfo fileInfo = fileInfoMapper.selectByFileIdAndUserId(fileId, userInfo.getUserId());
+            if (fileInfo == null) {
+                return getServerErrorResponseVO("文件不存在");
+            }
 
-        // 发送 RocketMQ 消息
-        if (rocketMQTemplate == null) {
-            return getServerErrorResponseVO("RocketMQ 未启用，请使用 /ai/analyze 或 /ai/transcribe 接口");
-        }
-        AnalysisTaskMsg taskMsg = new AnalysisTaskMsg(fileId, action);
-        rocketMQTemplate.convertAndSend("video-analysis-topic", JSON.toJSONString(taskMsg));
+            // 只支持视频和音频类型
+            if (fileInfo.getFileCategory() != null
+                    && fileInfo.getFileCategory() != FileCategoryEnum.VIDEO.getCategory()
+                    && fileInfo.getFileCategory() != FileCategoryEnum.MUSIC.getCategory()) {
+                return getServerErrorResponseVO("仅支持视频和音频文件的 AI 分析");
+            }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("fileId", fileId);
-        result.put("action", action);
-        result.put("status", "processing");
-        return getSuccessResponseVO(result);
+            // 发送 RabbitMQ 消息
+            AnalysisTaskMsg taskMsg = new AnalysisTaskMsg(fileId, action);
+            rabbitTemplate.convertAndSend("video.analysis.exchange", "video.analysis.routing", JSON.toJSONString(taskMsg));
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("fileId", fileId);
+            result.put("action", action);
+            result.put("status", "processing");
+            return getSuccessResponseVO(result);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
     }
 
     /**
-     * 直接提交 AI 分析（不走 RocketMQ，线程池异步执行）
-     * 适用于未部署 RocketMQ 的场景
+     * 提交 AI 分析任务（走 RabbitMQ 异步解耦）
      */
     @PostMapping("/analyze")
     @GlobalInterceptor(checkParams = true)
@@ -88,22 +111,40 @@ public class AiController extends ABaseController {
                               @VerifyParam(required = true) String fileId) {
         SessionWebUserVO userInfo = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
 
-        FileInfo fileInfo = fileInfoMapper.selectByFileIdAndUserId(fileId, userInfo.getUserId());
-        if (fileInfo == null) {
-            return getServerErrorResponseVO("文件不存在");
+        // Redisson 分布式锁防重复提交
+        String lockKey = "ai:lock:" + userInfo.getUserId() + ":" + fileId;
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            if (!lock.tryLock(0, 30, TimeUnit.SECONDS)) {
+                return getServerErrorResponseVO("分析任务正在进行中，请勿重复提交");
+            }
+        } catch (InterruptedException e) {
+            return getServerErrorResponseVO("系统繁忙，请稍后再试");
         }
 
-        // 线程池异步执行
-        aiService.asyncAnalyze(fileId);
+        try {
+            FileInfo fileInfo = fileInfoMapper.selectByFileIdAndUserId(fileId, userInfo.getUserId());
+            if (fileInfo == null) {
+                return getServerErrorResponseVO("文件不存在");
+            }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("fileId", fileId);
-        result.put("status", "processing");
-        return getSuccessResponseVO(result);
+            // RabbitMQ 异步解耦，不再直接调用 aiService.asyncAnalyze
+            AnalysisTaskMsg taskMsg = new AnalysisTaskMsg(fileId, "analyze");
+            rabbitTemplate.convertAndSend("video.analysis.exchange", "video.analysis.routing", JSON.toJSONString(taskMsg));
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("fileId", fileId);
+            result.put("status", "processing");
+            return getSuccessResponseVO(result);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
     }
 
     /**
-     * 直接提交文字提取任务（不走 RocketMQ）
+     * 提交文字提取任务（走 RabbitMQ 异步解耦）
      */
     @PostMapping("/transcribe")
     @GlobalInterceptor(checkParams = true)
@@ -111,17 +152,36 @@ public class AiController extends ABaseController {
                                  @VerifyParam(required = true) String fileId) {
         SessionWebUserVO userInfo = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
 
-        FileInfo fileInfo = fileInfoMapper.selectByFileIdAndUserId(fileId, userInfo.getUserId());
-        if (fileInfo == null) {
-            return getServerErrorResponseVO("文件不存在");
+        // Redisson 分布式锁防重复提交
+        String lockKey = "ai:lock:" + userInfo.getUserId() + ":" + fileId;
+        RLock lock = redissonClient.getLock(lockKey);
+        try {
+            if (!lock.tryLock(0, 30, TimeUnit.SECONDS)) {
+                return getServerErrorResponseVO("提取任务正在进行中，请勿重复提交");
+            }
+        } catch (InterruptedException e) {
+            return getServerErrorResponseVO("系统繁忙，请稍后再试");
         }
 
-        aiService.asyncTranscribe(fileId);
+        try {
+            FileInfo fileInfo = fileInfoMapper.selectByFileIdAndUserId(fileId, userInfo.getUserId());
+            if (fileInfo == null) {
+                return getServerErrorResponseVO("文件不存在");
+            }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("fileId", fileId);
-        result.put("status", "processing");
-        return getSuccessResponseVO(result);
+            // RabbitMQ 异步解耦，不再直接调用 aiService.asyncTranscribe
+            AnalysisTaskMsg taskMsg = new AnalysisTaskMsg(fileId, "transcribe");
+            rabbitTemplate.convertAndSend("video.analysis.exchange", "video.analysis.routing", JSON.toJSONString(taskMsg));
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("fileId", fileId);
+            result.put("status", "processing");
+            return getSuccessResponseVO(result);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
     }
 
     /**
@@ -146,7 +206,7 @@ public class AiController extends ABaseController {
     /**
      * 获取已分析的文件列表（带 AI 总结的文件）
      */
-    @PostMapping("/list")
+    @RequestMapping("/list")
     @GlobalInterceptor
     public ResponseVO listAnalyzedFiles(HttpSession session, FileInfoQuery query) {
         SessionWebUserVO userInfo = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
@@ -172,5 +232,14 @@ public class AiController extends ABaseController {
 
         PaginationResultVO<FileInfoVO> voResult = convertPaginationResult(result, FileInfoVO.class);
         return getSuccessResponseVO(voResult);
+    }
+
+    @RequestMapping("/delFile")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO delFile(HttpSession session,
+                              @VerifyParam(required = true) String fileIds) {
+        SessionWebUserVO webUserVO = (SessionWebUserVO) session.getAttribute(Constants.SESSION_WEB_USER);
+        fileInfoService.delFile(webUserVO.getUserId(), fileIds);
+        return getSuccessResponseVO(null);
     }
 }
