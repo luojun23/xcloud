@@ -36,33 +36,72 @@ public class AiService {
     @Value("${project.folder:d:/easypan/}")
     private String projectFolder;
 
+    // Redis 缓存 key 前缀
+    private static final String REDIS_KEY_TRANSCRIPT = "ai:transcript:";
+    private static final String REDIS_KEY_SUMMARY    = "ai:summary:";
+    // 缓存有效期（7天）
+    private static final long CACHE_TTL_DAYS = 7;
+
     /**
-     * 根据文件 MD5 查找已有分析结果（内容级去重）
+     * 判断文本是否为有效结果（非空且不含错误标记）
+     */
+    private boolean isValidResult(String text) {
+        return StringUtils.hasText(text) && !text.contains("❌");
+    }
+
+    /**
+     * 根据文件 MD5 查找已有分析结果（Redis 优先，降级查库）
+     * 只复用有效结果，错误结果不复用
+     *
      * @param fileMd5 文件 MD5
-     * @param field 复用的字段："transcriptText" 或 "aiSummary"
-     * @return 已有结果，未找到返回 null
+     * @param field   复用的字段："transcriptText" 或 "aiSummary"
+     * @return 有效的已有结果，未找到返回 null
      */
     private String findExistingResultByMd5(String fileMd5, String field) {
-        if (!StringUtils.hasText(fileMd5)) {
-            return null;
+        if (!StringUtils.hasText(fileMd5)) return null;
+
+        // 1. 先查 Redis 缓存
+        String redisKey = ("transcriptText".equals(field) ? REDIS_KEY_TRANSCRIPT : REDIS_KEY_SUMMARY) + fileMd5;
+        String cached = stringRedisTemplate.opsForValue().get(redisKey);
+        if (isValidResult(cached)) {
+            logger.info("[AI] Redis 缓存命中，field={}, fileMd5={}", field, fileMd5);
+            return cached;
         }
+
+        // 2. 缓存未命中，查数据库
         FileInfoQuery query = new FileInfoQuery();
         query.setFileMd5(fileMd5);
         query.setDelFlag(Constants.USING);
         query.setPageSize(10);
         List<FileInfo> list = fileInfoMapper.selectList(query);
-        if (CollectionUtils.isEmpty(list)) {
-            return null;
-        }
+        if (CollectionUtils.isEmpty(list)) return null;
+
         for (FileInfo item : list) {
-            if ("transcriptText".equals(field) && StringUtils.hasText(item.getTranscriptText())) {
+            if ("transcriptText".equals(field) && isValidResult(item.getTranscriptText())) {
+                // 回写 Redis
+                stringRedisTemplate.opsForValue().set(redisKey, item.getTranscriptText(),
+                        CACHE_TTL_DAYS, java.util.concurrent.TimeUnit.DAYS);
+                logger.info("[AI] DB 命中去重结果，已回写 Redis，field={}, fileMd5={}", field, fileMd5);
                 return item.getTranscriptText();
             }
-            if ("aiSummary".equals(field) && StringUtils.hasText(item.getAiSummary())) {
+            if ("aiSummary".equals(field) && isValidResult(item.getAiSummary())) {
+                stringRedisTemplate.opsForValue().set(redisKey, item.getAiSummary(),
+                        CACHE_TTL_DAYS, java.util.concurrent.TimeUnit.DAYS);
+                logger.info("[AI] DB 命中去重结果，已回写 Redis，field={}, fileMd5={}", field, fileMd5);
                 return item.getAiSummary();
             }
         }
         return null;
+    }
+
+    /**
+     * 将成功结果写入 Redis 缓存
+     */
+    private void cacheResult(String fileMd5, String field, String result) {
+        if (!StringUtils.hasText(fileMd5) || !isValidResult(result)) return;
+        String redisKey = ("transcriptText".equals(field) ? REDIS_KEY_TRANSCRIPT : REDIS_KEY_SUMMARY) + fileMd5;
+        stringRedisTemplate.opsForValue().set(redisKey, result, CACHE_TTL_DAYS, java.util.concurrent.TimeUnit.DAYS);
+        logger.info("[AI] 结果已写入 Redis 缓存，field={}, fileMd5={}", field, fileMd5);
     }
 
     /**
@@ -75,6 +114,9 @@ public class AiService {
 
         FileInfo fileInfo = fileInfoMapper.selectByFileId(fileId);
         if (fileInfo == null) return;
+
+        // 清空旧错误结果，避免前端轮询时立刻展示旧错误
+        clearErrorState(fileId);
 
         String fileMd5 = fileInfo.getFileMd5();
 
@@ -91,6 +133,7 @@ public class AiService {
             updateText.setFileId(fileId);
             updateText.setTranscriptText(text);
             fileInfoMapper.updateAiFields(updateText);
+            cacheResult(fileMd5, "transcriptText", text);
 
             // ========== 2. 智能总结（先去重）==========
             String aiSummary = findExistingResultByMd5(fileMd5, "aiSummary");
@@ -104,6 +147,7 @@ public class AiService {
             updateSummary.setFileId(fileId);
             updateSummary.setAiSummary(aiSummary);
             fileInfoMapper.updateAiFields(updateSummary);
+            cacheResult(fileMd5, "aiSummary", aiSummary);
 
             logger.info("[AI] 任务完成，fileId: {}", fileId);
 
@@ -128,6 +172,9 @@ public class AiService {
         FileInfo fileInfo = fileInfoMapper.selectByFileId(fileId);
         if (fileInfo == null) return;
 
+        // 清空旧错误结果
+        clearErrorState(fileId);
+
         String fileMd5 = fileInfo.getFileMd5();
 
         try {
@@ -144,11 +191,63 @@ public class AiService {
             update.setFileId(fileId);
             update.setTranscriptText(text);
             fileInfoMapper.updateAiFields(update);
+            cacheResult(fileMd5, "transcriptText", text);
 
             logger.info("[AI] 全文提取完成，fileId: {}", fileId);
 
         } catch (Exception e) {
             logger.error("[AI] 提取失败，fileId: {}", fileId, e);
+            FileInfo updateFail = new FileInfo();
+            updateFail.setFileId(fileId);
+            updateFail.setTranscriptText("❌ 提取失败: " + e.getMessage());
+            fileInfoMapper.updateAiFields(updateFail);
+        }
+    }
+
+    /**
+     * 判断文本是否为错误结果（含 ❌ 或已知错误关键字）
+     * 兼容历史上未加 ❌ 前缀的旧错误记录
+     */
+    private boolean isErrorText(String text) {
+        if (!StringUtils.hasText(text)) return false;
+        return text.contains("❌")
+                || text.startsWith("FFmpeg 转换失败")
+                || text.startsWith("处理异常:")
+                || text.startsWith("识别失败")
+                || text.startsWith("最终失败");
+    }
+
+    /**
+     * 清空指定 fileId 的旧错误结果（DB + Redis 同步清除）
+     * 兼容历史上未加 ❌ 前缀的错误文本
+     */
+    private void clearErrorState(String fileId) {
+        FileInfo current = fileInfoMapper.selectByFileId(fileId);
+        if (current == null) return;
+        boolean needClear = false;
+        FileInfo clearInfo = new FileInfo();
+        clearInfo.setFileId(fileId);
+
+        if (isErrorText(current.getTranscriptText())) {
+            clearInfo.setTranscriptText("");
+            needClear = true;
+            // 同步清除 Redis 中的脏缓存
+            if (StringUtils.hasText(current.getFileMd5())) {
+                stringRedisTemplate.delete(REDIS_KEY_TRANSCRIPT + current.getFileMd5());
+                logger.info("[AI] 清除 Redis 脏缓存，key: {}", REDIS_KEY_TRANSCRIPT + current.getFileMd5());
+            }
+        }
+        if (isErrorText(current.getAiSummary())) {
+            clearInfo.setAiSummary("");
+            needClear = true;
+            if (StringUtils.hasText(current.getFileMd5())) {
+                stringRedisTemplate.delete(REDIS_KEY_SUMMARY + current.getFileMd5());
+                logger.info("[AI] 清除 Redis 脏缓存，key: {}", REDIS_KEY_SUMMARY + current.getFileMd5());
+            }
+        }
+        if (needClear) {
+            fileInfoMapper.updateAiFields(clearInfo);
+            logger.info("[AI] 清空旧错误状态，fileId: {}", fileId);
         }
     }
 }

@@ -4,26 +4,34 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="086ffa5a-8c8d-4fde-9e4e-736c923599f6" name="Changes" comment="整合ai视频内容解析平台">
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+    <list default="true" id="086ffa5a-8c8d-4fde-9e4e-736c923599f6" name="Changes" comment="完成音频转文本、ai视频总结">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/xcloud.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/xcloud.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xcloud-front/src/views/ai/AiAnalysis.vue" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-front/src/views/ai/AiAnalysis.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xcloud-java/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/XcloudApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/XcloudApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/config/RocketMQConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/consumer/VideoAnalysisConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/consumer/VideoAnalysisConsumer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/controller/AiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/controller/AiController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/entity/constants/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/entity/constants/Constants.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/service/AiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/service/AiService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/strategy/impl/AliyunDeepSeekStrategy.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/utils/AliyunAsrUtils.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/java/com/njtech/xcloud/utils/DeepSeekUtils.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xcloud-java/src/main/resources/rebel.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/XcloudApplication.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/XcloudApplication.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/config/RocketMQConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/aspect/GlobalOperationAspect.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/aspect/GlobalOperationAspect.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/config/RedisComponent.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/config/RedisComponent.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/consumer/VideoAnalysisConsumer.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/consumer/VideoAnalysisConsumer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/AdminController.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/AdminController.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/AiController.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/AiController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/FileInfoController.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/FileInfoController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/FileShareController.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/FileShareController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/RecycleController.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/RecycleController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/UserInfoController.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/UserInfoController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/WebShareController.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/controller/WebShareController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/entity/constants/Constants.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/entity/constants/Constants.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/service/AiService.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/service/AiService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xcloud-java/xcloud-java.iml" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/xcloud-java.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/service/impl/FileInfoServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/service/impl/FileInfoServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/service/impl/UserInfoServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/service/impl/UserInfoServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/strategy/impl/AliyunDeepSeekStrategy.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/utils/AliyunAsrUtils.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/xcloud-java/target/classes/com/njtech/xcloud/utils/DeepSeekUtils.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,7 +90,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Spring Boot.XcloudApplication.executor": "JRebel Executor",
+    "Spring Boot.XcloudApplication.executor": "Debug",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
@@ -145,7 +153,7 @@
       <option name="presentableId" value="Default" />
       <updated>1779687900143</updated>
       <workItem from="1779687901218" duration="1811000" />
-      <workItem from="1779698862220" duration="5034000" />
+      <workItem from="1779698862220" duration="14892000" />
     </task>
     <task id="LOCAL-00001" summary="整合ai视频内容解析平台">
       <option name="closed" value="true" />
@@ -155,7 +163,23 @@
       <option name="project" value="LOCAL" />
       <updated>1779689187966</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="整合ai视频内容解析平台">
+      <option name="closed" value="true" />
+      <created>1779716303822</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1779716303822</updated>
+    </task>
+    <task id="LOCAL-00003" summary="整合ai视频内容解析平台">
+      <option name="closed" value="true" />
+      <created>1779716321872</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1779716321872</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -174,7 +198,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="整合ai视频内容解析平台" />
-    <option name="LAST_COMMIT_MESSAGE" value="整合ai视频内容解析平台" />
+    <MESSAGE value="完成音频转文本、ai视频总结" />
+    <option name="LAST_COMMIT_MESSAGE" value="完成音频转文本、ai视频总结" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

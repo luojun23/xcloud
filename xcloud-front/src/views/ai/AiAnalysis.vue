@@ -272,10 +272,39 @@ const handleDrop = async (e) => {
   }
 }
 
-// URL上传（暂不支持）
+// URL上传（链接下载）
 const handleUrlUpload = async () => {
-  showMsg('暂不支持链接下载，请使用本地上传', 'warning')
-  videoUrl.value = ''
+  const url = videoUrl.value?.trim()
+  if (!url) {
+    showMsg('请输入视频链接', 'warning')
+    return
+  }
+  if (!url.startsWith('http')) {
+    showMsg('请输入有效的 http/https 链接', 'warning')
+    return
+  }
+  uploading.value = true
+  showMsg('正在后台下载视频，请稍候...')
+  try {
+    const res = await fetch(API_BASE + '/ai/urlDownload', {
+      method: 'POST',
+      body: new URLSearchParams({ url }),
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
+    const data = await res.json()
+    if (data.code === 200) {
+      showMsg('视频下载成功，已加入工作台')
+      videoUrl.value = ''
+      fetchList()
+    } else {
+      showMsg(data.info || '链接下载失败', 'error')
+    }
+  } catch (e) {
+    showMsg('链接下载失败: ' + e.message, 'error')
+  } finally {
+    uploading.value = false
+  }
 }
 
 // 字段映射：将后端 FileInfoVO 映射为前端需要的格式
@@ -349,26 +378,43 @@ const formatTime = (timeStr) => {
   return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-// 下载音频（通过 /file/createDownloadUrl + /api/download 获取真实文件）
+// 下载音频（先通过 /ai/extractAudio 提取 mp3，再用下载码下载）
 const downloadAudio = async (item) => {
   try {
-    showMsg('正在准备下载...')
-    const result = await proxy.Request({
-      url: API_BASE + '/file/createDownloadUrl/' + item.fileId
+    showMsg('正在提取音频，请稍候...')
+    const res = await fetch(API_BASE + '/ai/extractAudio', {
+      method: 'POST',
+      body: new URLSearchParams({ fileId: item.fileId }),
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     })
-    if (!result || !result.data) {
-      showMsg('获取下载链接失败', 'error')
+    const data = await res.json()
+    if (!data || data.code !== 200 || !data.data) {
+      showMsg(data?.info || '提取音频失败', 'error')
       return
     }
-    window.location.href = API_BASE + '/download?code=' + result.data
+    // data.data 是下载码，直接触发下载
+    const a = document.createElement('a')
+    a.href = API_BASE + '/file/download/' + data.data
+    a.download = item.filename.replace(/\.[^.]+$/, '') + '.mp3'
+    a.click()
+    showMsg('音频下载已开始')
   } catch (e) {
-    showMsg('下载失败', 'error')
+    showMsg('下载失败: ' + e.message, 'error')
   }
+}
+
+// 判断结果是否包含错误标记
+const isErrorResult = (text) => {
+  if (!text) return false
+  const errorKeywords = ['失败', 'Error', '❌', '超时', '异常', '无法', '出错', '转换失败']
+  return errorKeywords.some(k => text.includes(k))
 }
 
 // 提取文字
 const transcribe = async (item) => {
-  if (item.transcriptText && item.transcriptText.length > 10) {
+  // 已有有效结果（非错误）直接展示，错误结果允许重试
+  if (item.transcriptText && item.transcriptText.length > 10 && !isErrorResult(item.transcriptText)) {
     showAiResult(item, 'text')
     return
   }
@@ -403,7 +449,8 @@ const transcribe = async (item) => {
 
 // AI 智能总结
 const aiAnalyze = async (item) => {
-  if (item.aiSummary && item.aiSummary.length > 20 && !item.aiSummary.includes('任务已') && !item.aiSummary.includes('正在')) {
+  // 已有有效结果（非错误）直接展示，错误结果允许重试
+  if (item.aiSummary && item.aiSummary.length > 20 && !isErrorResult(item.aiSummary)) {
     showAiResult(item, 'ai')
     return
   }

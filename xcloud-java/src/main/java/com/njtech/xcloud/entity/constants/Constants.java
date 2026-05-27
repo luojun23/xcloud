@@ -55,4 +55,5 @@ public class Constants {
     public static final String FILE_FOLDER_FILE = "/file/";
     public static final String FILE_FOLDER_TEMP = "/file/temp/";
     public static final String FILE_FOLDER_AVATAR = "/file/avatar/";
+    public static final String FILE_FOLDE_TRANSLATE_AUDIO = "/file/audio/";
 }
